@@ -32,6 +32,7 @@ Token *new_token(TokenKind kind, Token *cur, char *str)
   return tok;
 }
 
+// effect exit(1)
 void error(char *fmt, ...)
 {
   va_list ap;
@@ -42,6 +43,7 @@ void error(char *fmt, ...)
 }
 
 char *user_input;
+// effect exit(1)
 void error_at(char *loc, char *fmt, ...)
 {
   va_list ap;
@@ -66,6 +68,7 @@ bool eat(char op)
   return true;
 }
 
+// effect exit(1), read/write token
 void must_eat(char op)
 {
   if (token->kind != TK_RESERVED || token->str[0] != op)
@@ -75,6 +78,7 @@ void must_eat(char op)
   token = token->next;
 }
 
+// effect read/write token
 int must_number()
 {
   if (token->kind != TK_NUM)
