@@ -1,7 +1,7 @@
 CFLAGS=-std=c11 -g
 
-cmp: ./cmp.c
-	cc -o cmp $(CFLAGS) ./cmp.c
+cmp: ./src/cmp.c
+	cc -o cmp $(CFLAGS) ./src/cmp.c
 test: cmp
 	./test.sh
 
