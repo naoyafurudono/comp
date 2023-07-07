@@ -15,4 +15,4 @@ run: cmp
 clean:
 	rm -f cmp *.o *~ tmp* *.s *.out
 
-.PHONY: test clean run
+.PHONY: test clean run cmp

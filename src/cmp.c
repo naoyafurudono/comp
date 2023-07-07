@@ -144,8 +144,8 @@ Token *tokenize(char *p)
 }
 
 /*
-exp ::= term | term ("+" | "-" ) exp
-term ::= num | num ("*" | "/") term
+exp ::= term | exp ("+" | "-" ) term
+term ::= num | term ("*" | "/") num
 num ::= [0-9]+ | "(" exp ")"
 */
 
@@ -164,58 +164,66 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs)
   node->rhs = rhs;
   return node;
 }
-Node *parse(Kind kind)
+Node *new_node_num(int val)
 {
-  Node *lhs, *rhs, *node;
-  switch (kind)
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = ND_NUM;
+  node->val = val;
+  return node;
+}
+Node *expr(), *term(), *num();
+Node *expr()
+{
+  Node *node = term();
+  while (true)
   {
-  case Exp:
-    lhs = parse(Term);
     if (eat('+'))
     {
-      rhs = parse(Exp);
-      return new_node(ND_ADD, lhs, rhs);
+      node = new_node(ND_ADD, node, term());
     }
     else if (eat('-'))
     {
-      rhs = parse(Exp);
-      return new_node(ND_SUB, lhs, rhs);
+      node = new_node(ND_SUB, node, term());
     }
     else
     {
-      return lhs;
-    }
-  case Term:
-    lhs = parse(Num);
-    if (eat('*'))
-    {
-      rhs = parse(Term);
-      return new_node(ND_MUL, lhs, rhs);
-    }
-    else if (eat('/'))
-    {
-      rhs = parse(Term);
-      return new_node(ND_DIV, lhs, rhs);
-    }
-    else
-    {
-      return lhs;
-    }
-  case Num:
-    if (eat('('))
-    {
-      node = parse(Exp);
-      must_eat(')');
-      return node;
-    }
-    else
-    {
-      node = new_node(ND_NUM, NULL, NULL);
-      node->val = must_number();
       return node;
     }
   }
 }
+Node *term()
+{
+  Node *node = num();
+  while (true)
+  {
+    if (eat('*'))
+    {
+      node = new_node(ND_MUL, node, num());
+    }
+    else if (eat('/'))
+    {
+      node = new_node(ND_DIV, node, num());
+    }
+    else
+    {
+      return node;
+    }
+  }
+}
+Node *num()
+{
+  if (eat('('))
+  {
+    Node *node = expr();
+    must_eat(')');
+    return node;
+  }
+  else
+  {
+    return new_node_num(must_number());
+  }
+}
+
 void pprint(Node *node)
 {
   switch (node->kind)
@@ -254,6 +262,47 @@ void pprint(Node *node)
   }
 }
 
+void gen(Node *node)
+{
+  if (node->kind == ND_NUM)
+  {
+    printf("    mov w0, #%d\n", node->val);
+    printf("    str w0, [SP, #-16]!\n");
+    return;
+  }
+  gen(node->lhs);
+  gen(node->rhs);
+  switch (node->kind)
+  {
+  case ND_ADD:
+    printf("    ldr w1, [SP], #16\n");
+    printf("    ldr w0, [SP], #16\n");
+    printf("    add w0, w0, w1\n");
+    printf("    str w0, [SP, #-16]!\n");
+    break;
+  case ND_SUB:
+    printf("    ldr w1, [SP], #16\n");
+    printf("    ldr w0, [SP], #16\n");
+    printf("    sub w0, w0, w1\n");
+    printf("    str w0, [SP, #-16]!\n");
+    break;
+  case ND_MUL:
+    printf("    ldr w1, [SP], #16\n");
+    printf("    ldr w0, [SP], #16\n");
+    printf("    mul w0, w0, w1\n");
+    printf("    str w0, [SP, #-16]!\n");
+    break;
+  case ND_DIV:
+    printf("    ldr w1, [SP], #16\n");
+    printf("    ldr w0, [SP], #16\n");
+    printf("    sdiv w0, w0, w1\n");
+    printf("    str w0, [SP, #-16]!\n");
+    break;
+  default:
+    error("invalid node kind");
+  }
+}
+
 int main(int argc, char **argv)
 {
   if (argc != 2)
@@ -264,34 +313,17 @@ int main(int argc, char **argv)
 
   user_input = argv[1];
   token = tokenize(argv[1]);
-  Node *node = parse(Exp);
-  if (!at_eof()) {
+  Node *node = expr();
+  if (!at_eof())
+  {
     error_at(token->str, "予期しないトークンです: %s", token->str);
   }
-  pprint(node);
-  exit(0);
-
   printf(".globl _main\n");
   printf(".text\n");
   printf(".balign 4\n");
   printf("_main:\n");
-  printf("    mov w0, #%d\n", must_number());
-  while (!at_eof())
-  {
-    if (eat('+'))
-    {
-      printf("    add w0, w0, #%d\n", must_number());
-      continue;
-    }
-
-    if (eat('-'))
-    {
-      printf("    sub w0, w0, #%d\n", must_number());
-      continue;
-    }
-
-    error_at(token->str, "予期しない文字です: %c %n", token->str);
-  }
+  gen(node);
+  printf("    ldr w0, [SP], #16\n");
   printf("    ret\n");
   return 0;
 }
