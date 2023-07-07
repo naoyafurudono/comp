@@ -20,14 +20,16 @@ struct Token
   Token *next;    // must
   int val;        // optional
   char *str;      // must
+  int len;        // must
 };
 
 Token *token;
-Token *new_token(TokenKind kind, Token *cur, char *str)
+Token *new_token(TokenKind kind, Token *cur, char *str, int len)
 {
   Token *tok = calloc(1, sizeof(Token));
   tok->kind = kind;
   tok->str = str;
+  tok->len = len;
   cur->next = tok;
   return tok;
 }
@@ -76,10 +78,13 @@ void error_at(char *loc, char *fmt, ...)
   exit(1);
 }
 
-bool eat(char op)
+bool eat(char *op)
 {
-  if (token->kind != TK_RESERVED || token->str[0] != op)
+  if (token->kind != TK_RESERVED ||
+      token->len != strlen(op) ||
+      memcmp(token->str, op, token->len))
   {
+    // fprintf(stderr, "fail to eat %s\ntoken: %s\nlen: %d\n", op, token->str, token->len);
     return false;
   }
   token = token->next;
@@ -87,11 +92,13 @@ bool eat(char op)
 }
 
 // effect exit(1), read/write token
-void must_eat(char op)
+void must_eat(char *op)
 {
-  if (token->kind != TK_RESERVED || token->str[0] != op)
+  if (token->kind != TK_RESERVED ||
+      token->len != strlen(op) ||
+      memcmp(token->str, op, token->len))
   {
-    error_at(token->str, "'%c'ではありません", op);
+    error_at(token->str, "'%s'ではありません", op);
   }
   token = token->next;
 }
@@ -105,6 +112,7 @@ int must_number()
   }
   int val = token->val;
   token = token->next;
+  // fprintf(stderr, "must_number: %d\n", val);
   return val;
 }
 
@@ -128,26 +136,39 @@ Token *tokenize(char *p)
     }
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')')
     {
-      cur = new_token(TK_RESERVED, cur, p++);
+      cur = new_token(TK_RESERVED, cur, p++, 1);
       continue;
     }
     if (isdigit(*p))
     {
-      cur = new_token(TK_NUM, cur, p);
+      char *from = p;
+      cur = new_token(TK_NUM, cur, p, -1);
       cur->val = strtol(p, &p, 10);
+      cur->len = p - from;
       continue;
     }
     error_at(p, "トークナイズできません");
   }
-  new_token(TK_EOF, cur, p);
+  new_token(TK_EOF, cur, p, 0);
   return head.next;
 }
 
 /*
-exp ::= term | exp ("+" | "-" ) term
-term ::= unary | term ("*" | "/") unary
+
+1. ==, !=
+2. <, <=, >, >=
+3. +, -
+4. *, /
+5. unary +, unary -
+6. ()
+
+expr = equality
+equality = relational ("==" relational | "!=" relational)*
+relational ::= term ("<" term | "<=" term | ">" term | ">=" term)*
+term ::= mul ("+" mul | "-" mul)*
+mul ::= unary ("*" unary | "/" unary)*
 unary ::= ("+" | "-")? primary
-primary ::= [0-9]+ | "(" exp ")"
+primary ::= [0-9]+ | "(" expr ")"
 */
 
 typedef enum Kind Kind;
@@ -178,11 +199,11 @@ Node *expr()
   Node *node = term();
   while (true)
   {
-    if (eat('+'))
+    if (eat("+"))
     {
       node = new_node(ND_ADD, node, term());
     }
-    else if (eat('-'))
+    else if (eat("-"))
     {
       node = new_node(ND_SUB, node, term());
     }
@@ -197,11 +218,11 @@ Node *term()
   Node *node = unary();
   while (true)
   {
-    if (eat('*'))
+    if (eat("*"))
     {
       node = new_node(ND_MUL, node, unary());
     }
-    else if (eat('/'))
+    else if (eat("/"))
     {
       node = new_node(ND_DIV, node, unary());
     }
@@ -213,11 +234,11 @@ Node *term()
 }
 Node *unary()
 {
-  if (eat('+'))
+  if (eat("+"))
   {
     return primary();
   }
-  if (eat('-'))
+  if (eat("-"))
   {
     return new_node(ND_SUB, new_node_num(0), primary());
   }
@@ -225,53 +246,15 @@ Node *unary()
 }
 Node *primary()
 {
-  if (eat('('))
+  if (eat("("))
   {
     Node *node = expr();
-    must_eat(')');
+    must_eat(")");
     return node;
   }
   else
   {
     return new_node_num(must_number());
-  }
-}
-
-void pprint(Node *node)
-{
-  switch (node->kind)
-  {
-  case ND_ADD:
-    printf("(");
-    pprint(node->lhs);
-    printf(" + ");
-    pprint(node->rhs);
-    printf(")");
-    break;
-  case ND_SUB:
-    printf("(");
-    pprint(node->lhs);
-    printf(" - ");
-    pprint(node->rhs);
-    printf(")");
-    break;
-  case ND_MUL:
-    printf("(");
-    pprint(node->lhs);
-    printf(" * ");
-    pprint(node->rhs);
-    printf(")");
-    break;
-  case ND_DIV:
-    printf("(");
-    pprint(node->lhs);
-    printf(" / ");
-    pprint(node->rhs);
-    printf(")");
-    break;
-  case ND_NUM:
-    printf("%d", node->val);
-    break;
   }
 }
 
@@ -339,4 +322,42 @@ int main(int argc, char **argv)
   printf("    ldr w0, [SP], #16\n");
   printf("    ret\n");
   return 0;
+}
+
+void pprint(Node *node)
+{
+  switch (node->kind)
+  {
+  case ND_ADD:
+    printf("(");
+    pprint(node->lhs);
+    printf(" + ");
+    pprint(node->rhs);
+    printf(")");
+    break;
+  case ND_SUB:
+    printf("(");
+    pprint(node->lhs);
+    printf(" - ");
+    pprint(node->rhs);
+    printf(")");
+    break;
+  case ND_MUL:
+    printf("(");
+    pprint(node->lhs);
+    printf(" * ");
+    pprint(node->rhs);
+    printf(")");
+    break;
+  case ND_DIV:
+    printf("(");
+    pprint(node->lhs);
+    printf(" / ");
+    pprint(node->rhs);
+    printf(")");
+    break;
+  case ND_NUM:
+    printf("%d", node->val);
+    break;
+  }
 }
