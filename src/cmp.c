@@ -36,6 +36,12 @@ Token *new_token(TokenKind kind, Token *cur, char *str, int len)
 
 typedef enum
 {
+  ND_EQ,
+  ND_NEQ,
+  ND_LT,
+  ND_GT,
+  ND_LTE,
+  ND_GTE,
   ND_ADD,
   ND_SUB,
   ND_MUL,
@@ -164,8 +170,8 @@ Token *tokenize(char *p)
 
 expr = equality
 equality = relational ("==" relational | "!=" relational)*
-relational ::= term ("<" term | "<=" term | ">" term | ">=" term)*
-term ::= mul ("+" mul | "-" mul)*
+relational ::= add ("<" add | "<=" add | ">" add | ">=" add)*
+add ::= mul ("+" mul | "-" mul)*
 mul ::= unary ("*" unary | "/" unary)*
 unary ::= ("+" | "-")? primary
 primary ::= [0-9]+ | "(" expr ")"
@@ -193,19 +199,23 @@ Node *new_node_num(int val)
   node->val = val;
   return node;
 }
-Node *expr(), *term(), *unary(), *primary();
+Node *expr(), *equality(), *relational(), *mul(), *add(), *unary(), *primary();
 Node *expr()
 {
-  Node *node = term();
+  return equality();
+}
+Node *equality()
+{
+  Node *node = relational();
   while (true)
   {
-    if (eat("+"))
+    if (eat("=="))
     {
-      node = new_node(ND_ADD, node, term());
+      node = new_node(ND_EQ, node, relational());
     }
-    else if (eat("-"))
+    else if (eat("!="))
     {
-      node = new_node(ND_SUB, node, term());
+      node = new_node(ND_NEQ, node, relational());
     }
     else
     {
@@ -213,7 +223,53 @@ Node *expr()
     }
   }
 }
-Node *term()
+Node *relational()
+{
+  Node *node = add();
+  while (true)
+  {
+    if (eat("<"))
+    {
+      node = new_node(ND_LT, node, add());
+    }
+    else if (eat("<="))
+    {
+      node = new_node(ND_LTE, node, add());
+    }
+    else if (eat(">"))
+    {
+      node = new_node(ND_GT, node, add());
+    }
+    else if (eat(">="))
+    {
+      node = new_node(ND_GTE, node, add());
+    }
+    else
+    {
+      return node;
+    }
+  }
+}
+Node *add()
+{
+  Node *node = mul();
+  while (true)
+  {
+    if (eat("+"))
+    {
+      node = new_node(ND_ADD, node, mul());
+    }
+    else if (eat("-"))
+    {
+      node = new_node(ND_SUB, node, mul());
+    }
+    else
+    {
+      return node;
+    }
+  }
+}
+Node *mul()
 {
   Node *node = unary();
   while (true)
