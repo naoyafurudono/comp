@@ -145,8 +145,9 @@ Token *tokenize(char *p)
 
 /*
 exp ::= term | exp ("+" | "-" ) term
-term ::= num | term ("*" | "/") num
-num ::= [0-9]+ | "(" exp ")"
+term ::= unary | term ("*" | "/") unary
+unary ::= ("+" | "-")? primary
+primary ::= [0-9]+ | "(" exp ")"
 */
 
 typedef enum Kind Kind;
@@ -171,7 +172,7 @@ Node *new_node_num(int val)
   node->val = val;
   return node;
 }
-Node *expr(), *term(), *num();
+Node *expr(), *term(), *unary(), *primary();
 Node *expr()
 {
   Node *node = term();
@@ -193,16 +194,16 @@ Node *expr()
 }
 Node *term()
 {
-  Node *node = num();
+  Node *node = unary();
   while (true)
   {
     if (eat('*'))
     {
-      node = new_node(ND_MUL, node, num());
+      node = new_node(ND_MUL, node, unary());
     }
     else if (eat('/'))
     {
-      node = new_node(ND_DIV, node, num());
+      node = new_node(ND_DIV, node, unary());
     }
     else
     {
@@ -210,7 +211,19 @@ Node *term()
     }
   }
 }
-Node *num()
+Node *unary()
+{
+  if (eat('+'))
+  {
+    return primary();
+  }
+  if (eat('-'))
+  {
+    return new_node(ND_SUB, new_node_num(0), primary());
+  }
+  return primary();
+}
+Node *primary()
 {
   if (eat('('))
   {
