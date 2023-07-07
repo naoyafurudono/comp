@@ -48,6 +48,13 @@ typedef enum
   ND_DIV,
   ND_NUM,
 } NodeKind;
+char *nd_kind_bin_op[] = {
+    "eq",
+    "ne",
+    "lt",
+    "gt",
+    "le",
+    "ge"};
 
 typedef struct Node Node;
 struct Node
@@ -140,6 +147,61 @@ Token *tokenize(char *p)
       p++;
       continue;
     }
+    if (*p == '=')
+    {
+      if (++p && *p == '=')
+      {
+        cur = new_token(TK_RESERVED, cur, p - 1, 2);
+        p++;
+        continue;
+      }
+      else
+      {
+        error_at(p, "予期しない文字です: %c", *p);
+      }
+    }
+    if (*p == '!')
+    {
+      if (++p && *p == '=')
+      {
+        cur = new_token(TK_RESERVED, cur, p - 1, 2);
+        p++;
+        continue;
+      }
+      else
+      {
+        error_at(p, "予期しない文字です: %c", *p);
+      }
+    }
+    if (*p == '<')
+    {
+      if (++p && *p == '=')
+      {
+        cur = new_token(TK_RESERVED, cur, p - 1, 2);
+        p++;
+        continue;
+      }
+      else
+      {
+        cur = new_token(TK_RESERVED, cur, p - 1, 1);
+        continue;
+      }
+    }
+    if (*p == '>')
+    {
+      if (++p && *p == '=')
+      {
+        cur = new_token(TK_RESERVED, cur, p - 1, 2);
+        p++;
+        continue;
+      }
+      else
+      {
+        cur = new_token(TK_RESERVED, cur, p - 1, 1);
+        continue;
+      }
+    }
+
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')')
     {
       cur = new_token(TK_RESERVED, cur, p++, 1);
@@ -350,8 +412,20 @@ void gen(Node *node)
     printf("    sdiv w0, w0, w1\n");
     printf("    str w0, [SP, #-16]!\n");
     break;
+  case ND_EQ:
+  case ND_NEQ:
+  case ND_LT:
+  case ND_GT:
+  case ND_LTE:
+  case ND_GTE:
+    printf("    ldr w1, [SP], #16\n");
+    printf("    ldr w0, [SP], #16\n");
+    printf("    cmp w0, w1\n");
+    printf("    cset w0, %s\n", nd_kind_bin_op[node->kind]);
+    printf("    str w0, [SP, #-16]!\n");
+    break;
   default:
-    error("invalid node kind");
+    error("parse: invalid node kind");
   }
 }
 
