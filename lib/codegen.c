@@ -46,13 +46,32 @@ void gen(Node *node)
   case ND_GT:
   case ND_LTE:
   case ND_GTE:
-    printf("    ldr w1, [SP], #16\n");
-    printf("    ldr w0, [SP], #16\n");
-    printf("    cmp w0, w1\n");
-    printf("    cset w0, %s\n", nd_kind_bin_op[node->kind]);
-    printf("    str w0, [SP, #-16]!\n");
+    printf("    ldr x1, [SP], #16\n");
+    printf("    ldr x0, [SP], #16\n");
+    printf("    cmp x0, x1\n");
+    printf("    cset x0, %s\n", nd_kind_bin_op[node->kind]);
+    printf("    str x0, [SP, #-16]!\n");
     break;
   default:
     error("parse: invalid node kind");
   }
+}
+
+int enc(char *varname)
+{
+  if (varname[0] < 'a' || 'z' < varname[0])
+  {
+    error("parse: invalid variable name");
+  }
+  return (varname[0] - 'a' + 1) * 8;
+}
+void genl(Node *node)
+{
+  if (node->kind != ND_VAR)
+  {
+    error("gen: cannot be a l-value");
+  }
+  printf("    mov x0, #%d\n", enc(node->name));
+  printf("    str x0, [SP, #-16]!\n");
+  // printf
 }

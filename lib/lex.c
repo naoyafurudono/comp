@@ -41,7 +41,7 @@ Token *tokenize(char *p)
 
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' ||
         *p == '(' || *p == ')' ||
-        *p == ';' || *p == '=')
+        *p == ';')
     {
       cur = new_token(TK_RESERVED, cur, p++, 1);
       continue;
@@ -49,32 +49,34 @@ Token *tokenize(char *p)
 
     if (*p == '=')
     {
-      if (++p && *p == '=')
+      if (*(p + 1) == '=')
       {
-        cur = new_token(TK_RESERVED, cur, p - 1, 2);
-        p++;
+        cur = new_token(TK_RESERVED, cur, p, 2);
+        p += 2;
         continue;
       }
       else
       {
+        cur = new_token(TK_RESERVED, cur, p++, 1);
         error_at(p, "予期しない文字です: %c", *p);
       }
     }
     if (*p == '!')
     {
-      if (++p && *p == '=')
+      if (*(p + 1) == '=')
       {
-        cur = new_token(TK_RESERVED, cur, p - 1, 2);
-        p++;
+        cur = new_token(TK_RESERVED, cur, p, 2);
+        p += 2;
         continue;
       }
       else
       {
-        error_at(p, "予期しない文字です: %c", *p);
+        error_at(p, "予期しない文字です: %c", *(p + 1));
       }
     }
     if (*p == '<')
     {
+      // TODO ここでpをincするのは怖いくない？
       if (++p && *p == '=')
       {
         cur = new_token(TK_RESERVED, cur, p - 1, 2);
