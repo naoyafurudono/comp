@@ -1,11 +1,13 @@
 .DEFAULT_GOAL := cmp
 CFLAGS=-std=c11 -g
-SRCS=$(wildcard ./src/*.c)
-OBJS=$(SRCS:.c=.o)
+LIBS=$(wildcard ./lib/*.c)
+OBJS=$(LIBS:.c=.o)
 
-cmp: $(SRCS)
-	cc -o cmp $(CFLAGS) $(SRCS)
-
+cmp: $(LIBS)
+	cc -o cmp $(CFLAGS) ./bin/cmp.c $(LIBS)
+print: $(LIBS)
+	cc -o print $(CFLAGS) ./bin/print.c $(LIBS)
+	./print "$(ARGS)"
 $(OBJS): src/cmp.h
 test: cmp
 	./test.sh
@@ -16,6 +18,6 @@ run: cmp
 	./a.out
 
 clean:
-	rm -f cmp *.o *~ tmp* *.s *.out
+	rm -f cmp *.o *~ tmp* *.s *.out print
 
-.PHONY: test clean run cmp
+.PHONY: test clean run cmp print

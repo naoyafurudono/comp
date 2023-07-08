@@ -5,7 +5,8 @@
 
 #include "cmp.h"
 
-Token *token;
+#include <stdio.h>
+
 Token *new_token(TokenKind kind, Token *cur, char *str, int len)
 {
   Token *tok = calloc(1, sizeof(Token));
@@ -15,7 +16,15 @@ Token *new_token(TokenKind kind, Token *cur, char *str, int len)
   cur->next = tok;
   return tok;
 }
+char *getname(Token *token)
+{
+  char *name = calloc(token->len + 1, sizeof(char));
+  strncpy(name, token->str, token->len);
+  name[token->len] = '\0';
+  return name;
+}
 
+Token *token;
 Token *tokenize(char *p)
 {
   Token head;
@@ -89,6 +98,11 @@ Token *tokenize(char *p)
       cur = new_token(TK_RESERVED, cur, p++, 1);
       continue;
     }
+    if ('a' <= *p && *p <= 'z')
+    {
+      cur = new_token(TK_IDNT, cur, p++, 1);
+      continue;
+    }
     if (isdigit(*p))
     {
       char *from = p;
@@ -103,17 +117,28 @@ Token *tokenize(char *p)
   return head.next;
 }
 
-bool eat(char *op)
+bool eat_op(char *op)
 {
   if (token->kind != TK_RESERVED ||
       token->len != strlen(op) ||
       memcmp(token->str, op, token->len))
   {
-    // fprintf(stderr, "fail to eat %s\ntoken: %s\nlen: %d\n", op, token->str, token->len);
+    // fprintf(stderr, "fail to eat_op %s\ntoken: %s\nlen: %d\n", op, token->str, token->len);
     return false;
   }
   token = token->next;
   return true;
+}
+
+char *eat_id()
+{
+  if (token->kind != TK_IDNT)
+  {
+    return NULL;
+  }
+  char *name = getname(token);
+  token = token->next;
+  return name;
 }
 
 // effect exit(1), read/write token

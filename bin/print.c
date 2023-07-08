@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cmp.h"
+#include "../lib/cmp.h"
 
 // effect exit(1)
 void error(char *fmt, ...)
@@ -33,6 +33,10 @@ void error_at(char *loc, char *fmt, ...)
   exit(1);
 }
 
+void ptokens(void);
+
+void pprint(Node *);
+
 int main(int argc, char **argv)
 {
   if (argc != 2)
@@ -48,16 +52,19 @@ int main(int argc, char **argv)
   {
     error_at(token->str, "予期しないトークンです: %s", token->str);
   }
-  printf(".globl _main\n");
-  printf(".text\n");
-  printf(".balign 4\n");
-  printf("_main:\n");
-  gen(node);
-  printf("    ldr w0, [SP], #16\n");
-  printf("    ret\n");
+  pprint(node);
   return 0;
 }
 
+void ptokens()
+{
+  Token *cur = token;
+  while (cur->kind != TK_EOF)
+  {
+    printf("%s\n", cur->str);
+    cur = cur->next;
+  }
+}
 void pprint(Node *node)
 {
   switch (node->kind)
@@ -92,6 +99,37 @@ void pprint(Node *node)
     break;
   case ND_NUM:
     printf("%d", node->val);
+    break;
+  case ND_EQ:
+    printf("(");
+    pprint(node->lhs);
+    printf(" == ");
+    pprint(node->rhs);
+    printf(")");
+    break;
+  case ND_NEQ:
+    printf("(");
+    pprint(node->lhs);
+    printf(" != ");
+    pprint(node->rhs);
+    printf(")");
+    break;
+  case ND_LT:
+    printf("(");
+    pprint(node->lhs);
+    printf(" < ");
+    pprint(node->rhs);
+    printf(")");
+    break;
+  case ND_LTE:
+    printf("(");
+    pprint(node->lhs);
+    printf(" <= ");
+    pprint(node->rhs);
+    printf(")");
+    break;
+  case ND_VAR:
+    printf("%s", node->name);
     break;
   default:
     error("pprint: not defined yet");

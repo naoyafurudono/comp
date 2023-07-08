@@ -25,6 +25,13 @@ Node *new_node_num(int val)
   node->val = val;
   return node;
 }
+Node *new_node_var(char *name)
+{
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = ND_VAR;
+  node->name = name;
+  return node;
+}
 Node *expr(), *equality(), *relational(), *add(), *mul(), *unary(), *primary();
 Node *expr()
 {
@@ -35,11 +42,11 @@ Node *equality()
   Node *node = relational();
   while (true)
   {
-    if (eat("=="))
+    if (eat_op("=="))
     {
       node = new_node(ND_EQ, node, relational());
     }
-    else if (eat("!="))
+    else if (eat_op("!="))
     {
       node = new_node(ND_NEQ, node, relational());
     }
@@ -54,19 +61,19 @@ Node *relational()
   Node *node = add();
   while (true)
   {
-    if (eat("<"))
+    if (eat_op("<"))
     {
       node = new_node(ND_LT, node, add());
     }
-    else if (eat("<="))
+    else if (eat_op("<="))
     {
       node = new_node(ND_LTE, node, add());
     }
-    else if (eat(">"))
+    else if (eat_op(">"))
     {
       node = new_node(ND_GT, node, add());
     }
-    else if (eat(">="))
+    else if (eat_op(">="))
     {
       node = new_node(ND_GTE, node, add());
     }
@@ -81,11 +88,11 @@ Node *add()
   Node *node = mul();
   while (true)
   {
-    if (eat("+"))
+    if (eat_op("+"))
     {
       node = new_node(ND_ADD, node, mul());
     }
-    else if (eat("-"))
+    else if (eat_op("-"))
     {
       node = new_node(ND_SUB, node, mul());
     }
@@ -100,11 +107,11 @@ Node *mul()
   Node *node = unary();
   while (true)
   {
-    if (eat("*"))
+    if (eat_op("*"))
     {
       node = new_node(ND_MUL, node, unary());
     }
-    else if (eat("/"))
+    else if (eat_op("/"))
     {
       node = new_node(ND_DIV, node, unary());
     }
@@ -116,11 +123,11 @@ Node *mul()
 }
 Node *unary()
 {
-  if (eat("+"))
+  if (eat_op("+"))
   {
     return primary();
   }
-  if (eat("-"))
+  if (eat_op("-"))
   {
     return new_node(ND_SUB, new_node_num(0), primary());
   }
@@ -128,14 +135,16 @@ Node *unary()
 }
 Node *primary()
 {
-  if (eat("("))
+  if (eat_op("("))
   {
     Node *node = expr();
     must_eat(")");
     return node;
   }
-  else
+  char *mb_var = eat_id();
+  if (mb_var)
   {
-    return new_node_num(must_number());
+    return new_node_var(mb_var);
   }
+  return new_node_num(must_number());
 }
