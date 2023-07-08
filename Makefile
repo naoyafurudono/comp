@@ -1,15 +1,18 @@
 .DEFAULT_GOAL := cmp
 CFLAGS=-std=c11 -g
+SRCS=$(wildcard ./src/*.c)
+OBJS=$(SRCS:.c=.o)
 
-cmp: ./src/cmp.c
-	cc -o cmp $(CFLAGS) ./src/cmp.c
+cmp: $(SRCS)
+	cc -o cmp $(CFLAGS) $(SRCS)
 
+$(OBJS): src/cmp.h
 test: cmp
 	./test.sh
 
 run: cmp
 	./cmp "$(ARGS)" > a.s
-	gcc -o a.out a.s
+	cc -o a.out a.s
 	./a.out
 
 clean:
