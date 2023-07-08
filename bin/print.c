@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 
   user_input = argv[1];
   token = tokenize(argv[1]);
-  Node *node = expr();
+  Node *node = program();
   if (!at_eof())
   {
     error_at(token->str, "予期しないトークンです: %s", token->str);
@@ -130,6 +130,18 @@ void pprint(Node *node)
     break;
   case ND_VAR:
     printf("%s", node->name);
+    break;
+  case ND_SEQ:
+    pprint(node->lhs);
+    printf(";\n");
+    pprint(node->rhs);
+    break;
+  case ND_ASS:
+    printf("(");
+    pprint(node->lhs);
+    printf(" = ");
+    pprint(node->rhs);
+    printf(")");
     break;
   default:
     error("pprint: not defined yet");

@@ -33,7 +33,10 @@ Token *tokenize(char *p);
 5. unary +, unary -
 6. ()
 
-expr = equality
+program ::= stmt*
+stmt ::= expr ";"
+expr ::= assign
+assign ::= equality ("=" assign)?
 equality = relational ("==" relational | "!=" relational)*
 relational ::= add ("<" add | "<=" add | ">" add | ">=" add)*
 add ::= mul ("+" mul | "-" mul)*
@@ -56,6 +59,8 @@ typedef enum
   ND_DIV,
   ND_NUM,
   ND_VAR,
+  ND_SEQ,
+  ND_ASS,
 } NodeKind;
 extern char *nd_kind_bin_op[];
 
@@ -69,7 +74,7 @@ struct Node
   Node *rhs;     // optional
 };
 
-Node *expr();
+Node *program();
 
 bool eat_op(char *op);
 char *eat_id();

@@ -32,10 +32,39 @@ Node *new_node_var(char *name)
   node->name = name;
   return node;
 }
-Node *expr(), *equality(), *relational(), *add(), *mul(), *unary(), *primary();
+Node *program(), *stmt(), *expr(), *assign(), *equality(), *relational(), *add(), *mul(), *unary(), *primary();
+Node *program()
+{
+  Node *node = stmt();
+  if (at_eof())
+  {
+    return node;
+  }
+  return new_node(ND_SEQ, node, program());
+}
+
+Node *stmt()
+{
+  Node *node = expr();
+  must_eat(";");
+  return node;
+}
 Node *expr()
 {
-  return equality();
+  return assign();
+}
+Node *assign()
+{
+  Node *node = equality();
+  if (eat_op("="))
+  {
+    Node *rhs = assign();
+    return new_node(ND_ASS, node, rhs);
+  }
+  else
+  {
+    return node;
+  }
 }
 Node *equality()
 {

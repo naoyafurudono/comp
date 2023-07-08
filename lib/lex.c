@@ -38,6 +38,15 @@ Token *tokenize(char *p)
       p++;
       continue;
     }
+
+    if (*p == '+' || *p == '-' || *p == '*' || *p == '/' ||
+        *p == '(' || *p == ')' ||
+        *p == ';' || *p == '=')
+    {
+      cur = new_token(TK_RESERVED, cur, p++, 1);
+      continue;
+    }
+
     if (*p == '=')
     {
       if (++p && *p == '=')
@@ -93,11 +102,6 @@ Token *tokenize(char *p)
       }
     }
 
-    if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')')
-    {
-      cur = new_token(TK_RESERVED, cur, p++, 1);
-      continue;
-    }
     if ('a' <= *p && *p <= 'z')
     {
       cur = new_token(TK_IDNT, cur, p++, 1);

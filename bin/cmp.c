@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 
   user_input = argv[1];
   token = tokenize(argv[1]);
-  Node *node = expr();
+  Node *node = program();
   if (!at_eof())
   {
     error_at(token->str, "予期しないトークンです: %s", token->str);
