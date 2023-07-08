@@ -3,12 +3,13 @@
 
 #include "cmp.h"
 
+void genl(Node *node);
 void gen(Node *node)
 {
   if (node->kind == ND_NUM)
   {
-    printf("    mov w0, #%d\n", node->val);
-    printf("    str w0, [SP, #-16]!\n");
+    printf("    mov x0, #%d\n", node->val);
+    printf("    str x0, [SP, #-16]!\n");
     return;
   }
   gen(node->lhs);
@@ -16,28 +17,28 @@ void gen(Node *node)
   switch (node->kind)
   {
   case ND_ADD:
-    printf("    ldr w1, [SP], #16\n");
-    printf("    ldr w0, [SP], #16\n");
-    printf("    add w0, w0, w1\n");
-    printf("    str w0, [SP, #-16]!\n");
+    printf("    ldr x1, [SP], #16\n");
+    printf("    ldr x0, [SP], #16\n");
+    printf("    add x0, x0, x1\n");
+    printf("    str x0, [SP, #-16]!\n");
     break;
   case ND_SUB:
-    printf("    ldr w1, [SP], #16\n");
-    printf("    ldr w0, [SP], #16\n");
-    printf("    sub w0, w0, w1\n");
-    printf("    str w0, [SP, #-16]!\n");
+    printf("    ldr x1, [SP], #16\n");
+    printf("    ldr x0, [SP], #16\n");
+    printf("    sub x0, x0, x1\n");
+    printf("    str x0, [SP, #-16]!\n");
     break;
   case ND_MUL:
-    printf("    ldr w1, [SP], #16\n");
-    printf("    ldr w0, [SP], #16\n");
-    printf("    mul w0, w0, w1\n");
-    printf("    str w0, [SP, #-16]!\n");
+    printf("    ldr x1, [SP], #16\n");
+    printf("    ldr x0, [SP], #16\n");
+    printf("    mul x0, x0, x1\n");
+    printf("    str x0, [SP, #-16]!\n");
     break;
   case ND_DIV:
-    printf("    ldr w1, [SP], #16\n");
-    printf("    ldr w0, [SP], #16\n");
-    printf("    sdiv w0, w0, w1\n");
-    printf("    str w0, [SP, #-16]!\n");
+    printf("    ldr x1, [SP], #16\n");
+    printf("    ldr x0, [SP], #16\n");
+    printf("    sdiv x0, x0, x1\n");
+    printf("    str x0, [SP, #-16]!\n");
     break;
   case ND_EQ:
   case ND_NEQ:
