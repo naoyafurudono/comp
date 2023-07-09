@@ -1,5 +1,5 @@
 #ifndef CMP_H
-#define CMP_H
+#define CMP_H 1
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 
@@ -82,5 +82,8 @@ void must_eat(char *op);
 int must_number();
 bool at_eof();
 
+void prelude();
+void postlude();
 void gen(Node *node);
+
 #endif

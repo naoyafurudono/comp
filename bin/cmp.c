@@ -31,6 +31,11 @@ void error_at(char *loc, char *fmt, ...)
   exit(1);
 }
 
+void ret_42()
+{
+  printf("    mov x0, 42\n");
+  printf("    ret\n");
+}
 int main(int argc, char **argv)
 {
   if (argc != 2)
@@ -50,8 +55,8 @@ int main(int argc, char **argv)
   printf(".text\n");
   printf(".balign 4\n");
   printf("_main:\n");
+  prelude();
   gen(node);
-  printf("    ldr w0, [SP], #16\n");
-  printf("    ret\n");
+  postlude();
   return 0;
 }

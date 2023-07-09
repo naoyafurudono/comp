@@ -58,7 +58,7 @@ Token *tokenize(char *p)
       else
       {
         cur = new_token(TK_RESERVED, cur, p++, 1);
-        error_at(p, "予期しない文字です: %c", *p);
+        continue;
       }
     }
     if (*p == '!')
