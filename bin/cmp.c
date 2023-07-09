@@ -64,6 +64,5 @@ int main(int argc, char **argv)
     prelude(0);
   }
   gen(node);
-  // postlude();
   return 0;
 }

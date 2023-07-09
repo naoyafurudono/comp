@@ -5,8 +5,6 @@
 
 #include "cmp.h"
 
-#include <stdio.h>
-
 Token *new_token(TokenKind kind, Token *cur, char *str, int len)
 {
   Token *tok = calloc(1, sizeof(Token));
@@ -190,7 +188,6 @@ bool eat_op(char *op)
       token->len != strlen(op) ||
       memcmp(token->str, op, token->len))
   {
-    // fprintf(stderr, "fail to eat_op %s\ntoken: %s\nlen: %d\n", op, token->str, token->len);
     return false;
   }
   token = token->next;
@@ -230,7 +227,7 @@ void must_eat(char *op)
   token = token->next;
 }
 
-// effect read/write token
+// effect exit(1), read/write token
 int must_number()
 {
   if (token->kind != TK_NUM)
@@ -239,7 +236,6 @@ int must_number()
   }
   int val = token->val;
   token = token->next;
-  // fprintf(stderr, "must_number: %d\n", val);
   return val;
 }
 
