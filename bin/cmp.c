@@ -55,7 +55,14 @@ int main(int argc, char **argv)
   printf(".text\n");
   printf(".balign 4\n");
   printf("_main:\n");
-  prelude();
+  if (current_locals)
+  {
+    prelude(current_locals->offset);
+  }
+  else
+  {
+    prelude(0);
+  }
   gen(node);
   postlude();
   return 0;

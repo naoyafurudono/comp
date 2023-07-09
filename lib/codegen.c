@@ -19,11 +19,13 @@ int enc(char *varname)
   }
   return (-1) * (16 + (varname[0] - 'a') * 8);
 }
-void prelude()
+void prelude(size_t locals)
 {
+  // SPは16の倍数になっている必要がある
+  size_t range = (((locals * 8 - 1) / 16) + 1) * 16;
   push(29);
   printf("    mov x29, SP\n");
-  printf("    sub SP, SP, #208\n");
+  printf("    sub SP, SP, #%lu\n", range); // (全てのローカル変数はXnレジスタに格納されるので。)
 }
 void postlude()
 {

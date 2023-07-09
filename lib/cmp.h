@@ -89,11 +89,10 @@ struct Locals
   int offset;
   Locals *next;
 };
-Locals *getLocal(char *name);
-void appendLocals(char *name);
-
-extern Locals *locals;
-void prelude();
+Locals *applyLocals(Locals *locals, char *name);
+Locals *extendLocals(Locals *cur, char *name);
+extern Locals *current_locals;
+void prelude(size_t locals);
 void postlude();
 void gen(Node *node);
 
