@@ -16,6 +16,12 @@ assert() {
   fi
 }
 
+# assert 55 "a=0;b=0; while((a = (a+1)) < 11) b = b + a; return b;"
+# assert 20 "a=9;z=0; while((a = (a+1)) < 11)  if (a!=7) z = a + a; return z;"
+# assert 12 "a=0;z=0; while((a = (a+1)) < 7)  if (a!=7) z = a + a; return z;"
+# assert 14 "a=0;z=0; while((a = (a+1)) < 8)  if (a!=7) z = a + a; return z;"
+# assert 42 "a=0;b=0; while((a = (a+1)) < 11) if((a != 7) + (a != 6) == 1) b = b + a; return b;"
+
 assert 0 "return 0;"
 assert 42 "return 42;"
 assert 21 "return 5+20-4;"
@@ -56,8 +62,10 @@ assert 20 "a = 20; b = 22;return  a ;"
 assert 22 "a = 20; b = 22;  return b;"
 assert 42 "a = 20; b = 22; return a + b;"
 assert 42 "a = 20; b = 22; return a + b; 3;"
+assert 3 "a=0; a=a+1; a=a+a+1; return a;"
 assert 42 "if (1) return 42;"
 assert 42 "if (1) return 42; else return 0;"
 assert 42 "if (1 == 0) a = 24; else a = 42; return a;"
+assert 10 "a = 0; while (a < 10) a = a + 1; return a;"
 
 echo OK

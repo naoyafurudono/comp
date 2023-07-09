@@ -245,7 +245,7 @@ Locals *extendLocals(Locals *cur, char *name)
   if (cur)
     locals->offset = cur->offset + 1;
   else
-    locals->offset = 1;
+    locals->offset = 0;
   locals->next = cur;
   return locals;
 }

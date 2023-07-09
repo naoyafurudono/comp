@@ -147,38 +147,45 @@ void pprint(Node *node)
     pprint(node->rhs);
     printf(")");
     break;
-  case ND_IF:
-    printf("if (");
-    pprint(node->cond);
-    printf(") ");
+  case ND_RET:
+    printf("return ");
     pprint(node->lhs);
-    printf("\n");
+    break;
+  case ND_IF:
+    printf("(if ");
+    pprint(node->cond);
+    printf(" ");
+    pprint(node->lhs);
     if (node->rhs)
     {
-      printf("else ");
+      printf(" ");
       pprint(node->rhs);
-      printf("\n");
     }
+    printf(")");
     break;
   case ND_WHILE:
-    printf("while (");
+    printf("(while ");
     pprint(node->cond);
-    printf(") ");
     pprint(node->lhs);
-    printf("\n");
+    printf(")");
     break;
   case ND_FOR:
-    printf("for(");
+    printf("(for (");
     pprint(node->init);
-    printf(";");
+    printf(" ");
     pprint(node->cond);
-    printf(";");
+    printf(" ");
     pprint(node->rhs);
     printf(") ");
     pprint(node->lhs);
-    printf("\n");
+    printf(" )");
     break;
   default:
-    error("pprint: not defined yet");
+    error("pprint: not defined yet %d", node->kind);
   }
 }
+/*
+((a = 0); ((b = 0); ((while ((a = (a + 1)) < 11)
+                            (if (a != 7) (b = (b + a))));
+                      return b)))
+                      */

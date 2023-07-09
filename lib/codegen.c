@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -14,13 +15,31 @@ void push(int reg)
 }
 int enc(char *varname)
 {
-  if (varname[0] < 'a' || 'z' < varname[0])
+  Locals *l = applyLocals(current_locals, varname);
+  if (l == NULL)
   {
-    error("parse: invalid variable name");
+    error("gen: undefined variable %s", varname);
   }
-  return (-1) * (16 + (varname[0] - 'a') * 8);
+
+  // if (varname[0] < 'a' || 'z' < varname[0])
+  // {
+  //   error("parse: invalid variable name");
+  // }
+  return (-1) * (16 + l->offset * 8);
 }
 
+void comment(char *fmt, ...)
+{
+  char *COMM = getenv("DEBUG");
+  if (COMM != NULL)
+  {
+    printf("@ ");
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stdout, fmt, ap);
+    printf("\n");
+  }
+}
 size_t label_count = 0;
 char *new_label_name()
 {
@@ -49,7 +68,6 @@ void postlude()
 {
   printf("    mov SP, x29\n");
   pop(29);
-  printf("    ret\n");
 }
 void genl(Node *node)
 // lvalueの評価結果はbase pointerからのoffset
@@ -64,6 +82,7 @@ void genl(Node *node)
 // x29をベースポインタを保持するレジスタとして使う
 void gen(Node *node)
 {
+  char *end_then, *end_if, *begin_while, *end_while;
   switch (node->kind)
   {
   case ND_NUM:
@@ -89,19 +108,47 @@ void gen(Node *node)
     printf("    ret\n");
     return;
   case ND_IF:
-    char *end_then = new_label_name();
-    char *end_if = new_label_name();
+    comment("+ if");
+    end_then = new_label_name();
+    end_if = new_label_name();
+    comment("+ cond");
     gen(node->cond);
+    comment("- cond");
     pop(0);
     printf("    cbz x0, %s\n", end_then);
+    comment("+ then");
     gen(node->lhs);
+    comment("- then");
+    pop(0);
     printf("    b %s\n", end_if);
     printf("%s:\n", end_then);
     if (node->rhs)
     {
+      comment("+ else");
       gen(node->rhs);
+      comment("- else");
+      pop(0);
     }
     printf("%s:\n", end_if);
+    comment("- if");
+    return;
+  case ND_WHILE:
+    begin_while = new_label_name();
+    end_while = new_label_name();
+    comment("+ while");
+    printf("%s:\n", begin_while);
+    comment("+ cond");
+    gen(node->cond);
+    comment("- cond");
+    pop(0);
+    printf("    cbz x0, %s\n", end_while);
+    comment("+ body");
+    gen(node->lhs);
+    comment("- body");
+    pop(0);
+    printf("    b %s\n", begin_while);
+    printf("%s:\n", end_while);
+    comment("- while");
     return;
 
   default:;
