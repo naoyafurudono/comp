@@ -10,6 +10,10 @@ typedef enum
   TK_EOF,
   TK_IDNT,
   TK_RETURN,
+  TK_IF,
+  TK_ELSE,
+  TK_WHILE,
+  TK_FOR,
 } TokenKind;
 
 typedef struct Token Token;
@@ -37,6 +41,9 @@ Token *tokenize(char *p);
 program ::= stmt*
 stmt ::= expr ";"
       | "return" expr ";"
+      | "if" "(" expr ")" stmt ("else" stmt)?
+      | "while" "(" expr ")" stmt
+      | "for" "(" expr? ";" expr? ";" expr? ")" stmt
 expr ::= assign
 assign ::= equality ("=" assign)?
 equality ::= relational ("==" relational | "!=" relational)*
@@ -83,7 +90,7 @@ Node *program();
 
 bool eat_op(char *op);
 char *eat_id();
-bool eat_ret();
+bool eat(TokenKind);
 void must_eat(char *op);
 int must_number();
 bool at_eof();

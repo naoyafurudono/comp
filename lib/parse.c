@@ -49,7 +49,7 @@ Node *program()
 
 Node *stmt()
 {
-  if (eat_ret())
+  if (eat(TK_RETURN))
   {
     Node *node = new_node(ND_RET, expr(), NULL);
     must_eat(";");

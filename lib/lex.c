@@ -41,6 +41,12 @@ bool is_id_member(char c)
   return (is_alpha(c) || is_digit(c) || ('_' == c));
 }
 
+bool is_keyword(char *p, char *keyword)
+{
+  return (strncmp(p, keyword, strlen(keyword)) == 0 &&
+          !is_id_member(*(p + strlen(keyword))));
+}
+
 Token *token;
 Token *tokenize(char *p)
 {
@@ -50,10 +56,34 @@ Token *tokenize(char *p)
 
   while (*p)
   {
-    if (strncmp(p, "return", 6) == 0 && !is_id_member(*(p + 6)))
+    if (is_keyword(p, "return"))
     {
       cur = new_token(TK_RETURN, cur, p, 6);
       p += 6;
+      continue;
+    }
+    if (is_keyword(p, "if"))
+    {
+      cur = new_token(TK_IF, cur, p, 2);
+      p += 2;
+      continue;
+    }
+    if (is_keyword(p, "else"))
+    {
+      cur = new_token(TK_ELSE, cur, p, 4);
+      p += 4;
+      continue;
+    }
+    if (is_keyword(p, "while"))
+    {
+      cur = new_token(TK_WHILE, cur, p, 5);
+      p += 5;
+      continue;
+    }
+    if (is_keyword(p, "for"))
+    {
+      cur = new_token(TK_FOR, cur, p, 3);
+      p += 3;
       continue;
     }
     if (isspace(*p))
@@ -178,9 +208,9 @@ char *eat_id()
   return name;
 }
 
-bool eat_ret()
+bool eat(TokenKind kind)
 {
-  if (token->kind != TK_RETURN)
+  if (token->kind != kind)
   {
     return false;
   }
