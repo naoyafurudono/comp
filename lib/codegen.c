@@ -89,19 +89,19 @@ void gen(Node *node)
     printf("    ret\n");
     return;
   case ND_IF:
+    char *end_then = new_label_name();
+    char *end_if = new_label_name();
     gen(node->cond);
     pop(0);
-    char *then_l = new_label_name();
-    char *if_l = new_label_name();
-    printf("    cbz x0, %s\n", then_l);
+    printf("    cbz x0, %s\n", end_then);
     gen(node->lhs);
-    printf("    b %s\n", if_l);
-    printf("%s:\n", then_l);
+    printf("    b %s\n", end_if);
+    printf("%s:\n", end_then);
     if (node->rhs)
     {
       gen(node->rhs);
     }
-    printf("%s:\n", if_l);
+    printf("%s:\n", end_if);
     return;
 
   default:;
