@@ -73,6 +73,9 @@ typedef enum
   ND_SEQ,
   ND_ASS,
   ND_RET,
+  ND_IF,
+  ND_WHILE,
+  ND_FOR
 } NodeKind;
 extern char *nd_kind_bin_op[];
 
@@ -84,6 +87,8 @@ struct Node
   char *name;    // optional
   Node *lhs;     // optional
   Node *rhs;     // optional
+  Node *cond;    // optional
+  Node *init;    // optional
 };
 
 Node *program();

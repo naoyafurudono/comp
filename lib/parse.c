@@ -55,6 +55,55 @@ Node *stmt()
     must_eat(";");
     return node;
   }
+  if (eat(TK_IF))
+  {
+    must_eat("(");
+    Node *cond = expr();
+    must_eat(")");
+    Node *then_n = stmt();
+    Node *node = new_node(ND_IF, then_n, NULL);
+    node->cond = cond;
+    if (eat(TK_ELSE))
+    {
+      Node *else_n = stmt();
+      node->rhs = else_n;
+    }
+    return node;
+  }
+  if (eat(TK_WHILE))
+  {
+    must_eat("(");
+    Node *cond = expr();
+    must_eat(")");
+    Node *then_n = stmt();
+    Node *node = new_node(ND_WHILE, then_n, NULL);
+    node->cond = cond;
+    return node;
+  }
+  if(eat(TK_FOR)){
+    must_eat("(");
+    Node *init = NULL;
+    Node *cond = NULL;
+    Node *update = NULL;
+    if(!eat_op(";")){
+      init = expr();
+      must_eat(";");
+    }
+    if(!eat_op(";")){
+      cond = expr();
+      must_eat(";");
+    }
+    if(!eat_op(")")){
+      update = expr();
+      must_eat(")");
+    }
+    Node *then_n = stmt();
+    Node *node = new_node(ND_FOR, then_n, NULL);
+    node->init = init;
+    node->cond = cond;
+    node->rhs= update;
+    return node;
+  }
   Node *node = expr();
   must_eat(";");
   return node;

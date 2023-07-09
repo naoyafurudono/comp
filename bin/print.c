@@ -67,6 +67,8 @@ void ptokens()
 }
 void pprint(Node *node)
 {
+  if (!node)
+    return;
   switch (node->kind)
   {
   case ND_ADD:
@@ -144,6 +146,37 @@ void pprint(Node *node)
     printf(" = ");
     pprint(node->rhs);
     printf(")");
+    break;
+  case ND_IF:
+    printf("if (");
+    pprint(node->cond);
+    printf(") ");
+    pprint(node->lhs);
+    printf("\n");
+    if (node->rhs)
+    {
+      printf("else ");
+      pprint(node->rhs);
+      printf("\n");
+    }
+    break;
+  case ND_WHILE:
+    printf("while (");
+    pprint(node->cond);
+    printf(") ");
+    pprint(node->lhs);
+    printf("\n");
+    break;
+  case ND_FOR:
+    printf("for(");
+    pprint(node->init);
+    printf(";");
+    pprint(node->cond);
+    printf(";");
+    pprint(node->rhs);
+    printf(") ");
+    pprint(node->lhs);
+    printf("\n");
     break;
   default:
     error("pprint: not defined yet");
