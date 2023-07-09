@@ -55,5 +55,6 @@ assert 42 "z = 42; return z;"
 assert 20 "a = 20; b = 22;return  a ;"
 assert 22 "a = 20; b = 22;  return b;"
 assert 42 "a = 20; b = 22; return a + b;"
+assert 42 "a = 20; b = 22; return a + b; 3;"
 
 echo OK
