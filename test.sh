@@ -56,5 +56,8 @@ assert 20 "a = 20; b = 22;return  a ;"
 assert 22 "a = 20; b = 22;  return b;"
 assert 42 "a = 20; b = 22; return a + b;"
 assert 42 "a = 20; b = 22; return a + b; 3;"
+assert 42 "if (1) return 42;"
+assert 42 "if (1) return 42; else return 0;"
+assert 42 "if (1 == 0) a = 24; else a = 42; return a;"
 
 echo OK

@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "cmp.h"
 
@@ -19,6 +20,23 @@ int enc(char *varname)
   }
   return (-1) * (16 + (varname[0] - 'a') * 8);
 }
+
+size_t label_count = 0;
+char *new_label_name()
+{
+  int buf_size = 10;
+  if (label_count == 10000000)
+  // バッファサイズに達したら
+  // 三文字は.Lと終端文字
+  // buf_size-3桁作れる
+  {
+    error("gen: too many labels");
+  }
+  char *buf = calloc(buf_size, sizeof(char));
+  sprintf(buf, ".L%lu", label_count++);
+  return buf;
+}
+
 void prelude(size_t locals)
 {
   // SPは16の倍数になっている必要がある
@@ -70,6 +88,22 @@ void gen(Node *node)
     postlude();
     printf("    ret\n");
     return;
+  case ND_IF:
+    gen(node->cond);
+    pop(0);
+    char *then_l = new_label_name();
+    char *if_l = new_label_name();
+    printf("    cbz x0, %s\n", then_l);
+    gen(node->lhs);
+    printf("    b %s\n", if_l);
+    printf("%s:\n", then_l);
+    if (node->rhs)
+    {
+      gen(node->rhs);
+    }
+    printf("%s:\n", if_l);
+    return;
+
   default:;
   }
 
