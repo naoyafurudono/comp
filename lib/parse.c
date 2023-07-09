@@ -1,6 +1,6 @@
-
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 #include "cmp.h"
 
 char *nd_kind_bin_op[] = {
@@ -30,8 +30,11 @@ Node *new_node_var(char *name)
   Node *node = calloc(1, sizeof(Node));
   node->kind = ND_VAR;
   node->name = name;
+
+  appendLocals(name);  // make symbol table
   return node;
 }
+
 Node *program(), *stmt(), *expr(), *assign(), *equality(), *relational(), *add(), *mul(), *unary(), *primary();
 Node *program()
 {
@@ -176,4 +179,29 @@ Node *primary()
     return new_node_var(mb_var);
   }
   return new_node_num(must_number());
+}
+
+Locals *locals = NULL;
+void appendLocals(char *name)
+{
+
+  Locals *cur = calloc(1, sizeof(Locals));
+  cur->name = name;
+  if (locals)
+    cur->offset = locals->offset + 1;
+  else
+    cur->offset = 1;
+  cur->next = locals;
+  locals = cur;
+}
+Locals *getLocal(char *name)
+{
+  Locals *cur = locals;
+  while (cur)
+  {
+    if (strcmp(cur->name, name) == 0)
+      return cur;
+    cur = cur->next;
+  }
+  return NULL;
 }

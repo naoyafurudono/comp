@@ -82,6 +82,17 @@ void must_eat(char *op);
 int must_number();
 bool at_eof();
 
+typedef struct Locals Locals;
+struct Locals
+{
+  char *name;
+  int offset;
+  Locals *next;
+};
+Locals *getLocal(char *name);
+void appendLocals(char *name);
+
+extern Locals *locals;
 void prelude();
 void postlude();
 void gen(Node *node);

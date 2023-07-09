@@ -106,7 +106,15 @@ Token *tokenize(char *p)
 
     if ('a' <= *p && *p <= 'z')
     {
-      cur = new_token(TK_IDNT, cur, p++, 1);
+      char *from = p;
+      for (p++; *p; p++)
+      {
+        if (!('a' <= *p && *p <= 'z'))
+        {
+          break;
+        }
+      }
+      cur = new_token(TK_IDNT, cur, from, p - from);
       continue;
     }
     if (isdigit(*p))
