@@ -49,6 +49,12 @@ Node *program()
 
 Node *stmt()
 {
+  if (eat_ret())
+  {
+    Node *node = new_node(ND_RET, expr(), NULL);
+    must_eat(";");
+    return node;
+  }
   Node *node = expr();
   must_eat(";");
   return node;

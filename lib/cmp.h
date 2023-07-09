@@ -8,7 +8,8 @@ typedef enum
   TK_RESERVED,
   TK_NUM,
   TK_EOF,
-  TK_IDNT
+  TK_IDNT,
+  TK_RETURN,
 } TokenKind;
 
 typedef struct Token Token;
@@ -35,14 +36,17 @@ Token *tokenize(char *p);
 
 program ::= stmt*
 stmt ::= expr ";"
+      | "return" expr ";"
 expr ::= assign
 assign ::= equality ("=" assign)?
-equality = relational ("==" relational | "!=" relational)*
+equality ::= relational ("==" relational | "!=" relational)*
 relational ::= add ("<" add | "<=" add | ">" add | ">=" add)*
 add ::= mul ("+" mul | "-" mul)*
 mul ::= unary ("*" unary | "/" unary)*
 unary ::= ("+" | "-")? primary
-primary ::= [a-z] | [0-9]+ | "(" expr ")"
+primary ::= [a-z]
+        | [0-9]+
+        | "(" expr ")"
 */
 
 typedef enum
@@ -61,6 +65,7 @@ typedef enum
   ND_VAR,
   ND_SEQ,
   ND_ASS,
+  ND_RET,
 } NodeKind;
 extern char *nd_kind_bin_op[];
 
@@ -78,6 +83,7 @@ Node *program();
 
 bool eat_op(char *op);
 char *eat_id();
+bool eat_ret();
 void must_eat(char *op);
 int must_number();
 bool at_eof();

@@ -29,8 +29,6 @@ void prelude(size_t locals)
 }
 void postlude()
 {
-  push(0);
-  // printf("    add SP, SP, #112\n");
   printf("    mov SP, x29\n");
   pop(29);
   printf("    ret\n");
@@ -65,6 +63,12 @@ void gen(Node *node)
   case ND_VAR:
     printf("    ldur x0, [x29, %d]\n", enc(node->name));
     push(0);
+    return;
+  case ND_RET:
+    gen(node->lhs);
+    pop(0);
+    postlude();
+    printf("    ret\n");
     return;
   default:;
   }
