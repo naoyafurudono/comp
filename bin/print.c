@@ -132,9 +132,11 @@ void pprint(Node *node)
     printf("%s", node->name);
     break;
   case ND_SEQ:
+    printf("(");
     pprint(node->lhs);
-    printf(";\n");
+    printf("; ");
     pprint(node->rhs);
+    printf(")");
     break;
   case ND_ASS:
     printf("(");
