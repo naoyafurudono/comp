@@ -56,6 +56,7 @@ char *new_label_name()
   return buf;
 }
 
+// nodeの実行でスタックに値が積まれる場合、それをスタックから取り除く
 void gc_stack(Node *node)
 {
   if (node == NULL)
