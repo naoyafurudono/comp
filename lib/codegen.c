@@ -56,6 +56,40 @@ char *new_label_name()
   return buf;
 }
 
+void gc_stack(Node *node)
+{
+  if (node == NULL)
+  {
+    return;
+  }
+  switch (node->kind)
+  {
+
+  case ND_EQ:
+  case ND_NEQ:
+  case ND_LT:
+  case ND_GT:
+  case ND_LTE:
+  case ND_GTE:
+  case ND_ADD:
+  case ND_SUB:
+  case ND_MUL:
+  case ND_DIV:
+  case ND_NUM:
+  case ND_VAR:
+  case ND_ASS:
+    pop(0);
+  case ND_SEQ:
+  case ND_RET:
+  case ND_IF:
+  case ND_WHILE:
+  case ND_FOR:
+    return;
+  default:
+    error("idk this node");
+  }
+}
+
 void prelude(size_t locals)
 {
   // SPは16の倍数になっている必要がある
@@ -114,12 +148,12 @@ void gen(Node *node)
     comment("+ cond");
     gen(node->cond);
     comment("- cond");
-    // pop(0);
+    pop(0);
     printf("    cbz x0, %s\n", end_then);
     comment("+ then");
     gen(node->lhs);
     comment("- then");
-    // pop(0);
+    gc_stack(node->lhs);
     printf("    b %s\n", end_if);
     printf("%s:\n", end_then);
     if (node->rhs)
@@ -127,7 +161,7 @@ void gen(Node *node)
       comment("+ else");
       gen(node->rhs);
       comment("- else");
-      // pop(0);
+      gc_stack(node->rhs);
     }
     printf("%s:\n", end_if);
     comment("- if");
@@ -140,12 +174,12 @@ void gen(Node *node)
     comment("+ cond");
     gen(node->cond);
     comment("- cond");
-    // pop(0);
+    pop(0);
     printf("    cbz x0, %s\n", end_while);
     comment("+ body");
     gen(node->lhs);
     comment("- body");
-    // pop(0);
+    gc_stack(node->lhs);
     printf("    b %s\n", begin_while);
     printf("%s:\n", end_while);
     comment("- while");
