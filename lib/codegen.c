@@ -114,12 +114,12 @@ void gen(Node *node)
     comment("+ cond");
     gen(node->cond);
     comment("- cond");
-    pop(0);
+    // pop(0);
     printf("    cbz x0, %s\n", end_then);
     comment("+ then");
     gen(node->lhs);
     comment("- then");
-    pop(0);
+    // pop(0);
     printf("    b %s\n", end_if);
     printf("%s:\n", end_then);
     if (node->rhs)
@@ -127,7 +127,7 @@ void gen(Node *node)
       comment("+ else");
       gen(node->rhs);
       comment("- else");
-      pop(0);
+      // pop(0);
     }
     printf("%s:\n", end_if);
     comment("- if");
@@ -140,12 +140,12 @@ void gen(Node *node)
     comment("+ cond");
     gen(node->cond);
     comment("- cond");
-    pop(0);
+    // pop(0);
     printf("    cbz x0, %s\n", end_while);
     comment("+ body");
     gen(node->lhs);
     comment("- body");
-    pop(0);
+    // pop(0);
     printf("    b %s\n", begin_while);
     printf("%s:\n", end_while);
     comment("- while");
