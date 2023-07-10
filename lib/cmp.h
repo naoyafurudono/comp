@@ -70,8 +70,10 @@ typedef enum
   ND_DIV,
   ND_NUM,
   ND_VAR,
-  ND_SEQ,
   ND_ASS,
+
+  // not expr
+  ND_SEQ,
   ND_RET,
   ND_IF,
   ND_WHILE,
@@ -89,6 +91,7 @@ struct Node
   Node *rhs;     // optional
   Node *cond;    // optional
   Node *init;    // optional
+  bool expr;     // must
 };
 
 Node *program();

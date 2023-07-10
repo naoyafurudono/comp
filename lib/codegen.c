@@ -20,11 +20,6 @@ int enc(char *varname)
   {
     error("gen: undefined variable %s", varname);
   }
-
-  // if (varname[0] < 'a' || 'z' < varname[0])
-  // {
-  //   error("parse: invalid variable name");
-  // }
   return (-1) * (16 + l->offset * 8);
 }
 
@@ -63,31 +58,8 @@ void gc_stack(Node *node)
   {
     return;
   }
-  switch (node->kind)
-  {
-
-  case ND_EQ:
-  case ND_NEQ:
-  case ND_LT:
-  case ND_GT:
-  case ND_LTE:
-  case ND_GTE:
-  case ND_ADD:
-  case ND_SUB:
-  case ND_MUL:
-  case ND_DIV:
-  case ND_NUM:
-  case ND_VAR:
-  case ND_ASS:
+  if(node->expr){
     pop(0);
-  case ND_SEQ:
-  case ND_RET:
-  case ND_IF:
-  case ND_WHILE:
-  case ND_FOR:
-    return;
-  default:
-    error("idk this node");
   }
 }
 
@@ -115,11 +87,14 @@ void genl(Node *node)
   push(0);
 }
 // x29をベースポインタを保持するレジスタとして使う
+// 式を実行する場合、その結果はスタックにpushされる
+// 式以外を実行した場合、その内側で式を実行するとしても、最終的にはスタックのサイズを変えてはならない
 void gen(Node *node)
 {
   char *end_then, *end_if, *begin_while, *end_while;
   switch (node->kind)
   {
+  // exp
   case ND_NUM:
     printf("    mov x0, #%d\n", node->val);
     push(0);
@@ -136,54 +111,47 @@ void gen(Node *node)
     printf("    ldur x0, [x29, %d]\n", enc(node->name));
     push(0);
     return;
+  // stmt
   case ND_RET:
     gen(node->lhs);
     pop(0);
     postlude();
     printf("    ret\n");
     return;
+  case ND_SEQ:
+    gen(node->lhs);
+    // gc_stack(node->lhs);
+    gen(node->rhs);
+    gc_stack(node->rhs);
+    return;
   case ND_IF:
-    comment("+ if");
     end_then = new_label_name();
     end_if = new_label_name();
-    comment("+ cond");
     gen(node->cond);
-    comment("- cond");
     pop(0);
     printf("    cbz x0, %s\n", end_then);
-    comment("+ then");
     gen(node->lhs);
-    comment("- then");
     gc_stack(node->lhs);
     printf("    b %s\n", end_if);
     printf("%s:\n", end_then);
     if (node->rhs)
     {
-      comment("+ else");
       gen(node->rhs);
-      comment("- else");
       gc_stack(node->rhs);
     }
     printf("%s:\n", end_if);
-    comment("- if");
     return;
   case ND_WHILE:
     begin_while = new_label_name();
     end_while = new_label_name();
-    comment("+ while");
     printf("%s:\n", begin_while);
-    comment("+ cond");
     gen(node->cond);
-    comment("- cond");
     pop(0);
     printf("    cbz x0, %s\n", end_while);
-    comment("+ body");
     gen(node->lhs);
-    comment("- body");
     gc_stack(node->lhs);
     printf("    b %s\n", begin_while);
     printf("%s:\n", end_while);
-    comment("- while");
     return;
 
   default:;
@@ -195,8 +163,6 @@ void gen(Node *node)
   gen(node->rhs);
   switch (node->kind)
   {
-  case ND_SEQ:
-    return;
   case ND_ADD:
     pop(1);
     pop(0);

@@ -184,8 +184,3 @@ void pprint(Node *node)
     error("pprint: not defined yet %d", node->kind);
   }
 }
-/*
-((a = 0); ((b = 0); ((while ((a = (a + 1)) < 11)
-                            (if (a != 7) (b = (b + a))));
-                      return b)))
-                      */

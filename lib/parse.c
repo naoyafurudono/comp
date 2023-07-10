@@ -17,19 +17,30 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs)
   node->kind = kind;
   node->lhs = lhs;
   node->rhs = rhs;
+  switch (kind)
+  {
+  case ND_SEQ:
+  case ND_RET:
+  case ND_IF:
+  case ND_WHILE:
+  case ND_FOR:
+    node->expr = false;
+    break;
+  default:
+    node->expr = true;
+    break;
+  }
   return node;
 }
 Node *new_node_num(int val)
 {
-  Node *node = calloc(1, sizeof(Node));
-  node->kind = ND_NUM;
+  Node *node = new_node(ND_NUM, NULL, NULL);
   node->val = val;
   return node;
 }
 Node *new_node_var(char *name)
 {
-  Node *node = calloc(1, sizeof(Node));
-  node->kind = ND_VAR;
+  Node *node = new_node(ND_VAR, NULL, NULL);
   node->name = name;
 
   current_locals = extendLocals(current_locals, name);
@@ -80,20 +91,24 @@ Node *stmt()
     node->cond = cond;
     return node;
   }
-  if(eat(TK_FOR)){
+  if (eat(TK_FOR))
+  {
     must_eat("(");
     Node *init = NULL;
     Node *cond = NULL;
     Node *update = NULL;
-    if(!eat_op(";")){
+    if (!eat_op(";"))
+    {
       init = expr();
       must_eat(";");
     }
-    if(!eat_op(";")){
+    if (!eat_op(";"))
+    {
       cond = expr();
       must_eat(";");
     }
-    if(!eat_op(")")){
+    if (!eat_op(")"))
+    {
       update = expr();
       must_eat(")");
     }
@@ -101,7 +116,7 @@ Node *stmt()
     Node *node = new_node(ND_FOR, then_n, NULL);
     node->init = init;
     node->cond = cond;
-    node->rhs= update;
+    node->rhs = update;
     return node;
   }
   Node *node = expr();
