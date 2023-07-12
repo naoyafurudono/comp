@@ -180,6 +180,11 @@ void pprint(Node *node)
     pprint(node->lhs);
     printf(" )");
     break;
+  case ND_BLK:
+    printf("{ ");
+    pprint(node->lhs);
+    printf(" }");
+    break;
   default:
     error("pprint: not defined yet %d", node->kind);
   }

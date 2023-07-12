@@ -24,6 +24,7 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs)
   case ND_IF:
   case ND_WHILE:
   case ND_FOR:
+  case ND_BLK:
     node->expr = false;
     break;
   default:
@@ -32,6 +33,25 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs)
   }
   return node;
 }
+
+// seqにnodeをappendして、末尾のseqを返す
+Node *appendSeq(Node *seq, Node *node)
+/* invariant:
+ *   seq->kind == ND_SEQ &&
+ *   seq->rhs == NULL
+ * or: // この場合、二要素のリストを作る
+ *   seq->kind != ND_SEQ
+ */
+{
+  if (seq == NULL)
+    return new_node(ND_SEQ, node, NULL);
+  Node *rhs = new_node(ND_SEQ, node, NULL);
+  if (seq->kind != ND_SEQ)
+    return new_node(ND_SEQ, seq, rhs);
+  seq->rhs = new_node(ND_SEQ, rhs, NULL);
+  return seq->rhs;
+}
+
 Node *new_node_num(int val)
 {
   Node *node = new_node(ND_NUM, NULL, NULL);
@@ -50,12 +70,11 @@ Node *new_node_var(char *name)
 Node *program(), *stmt(), *expr(), *assign(), *equality(), *relational(), *add(), *mul(), *unary(), *primary();
 Node *program()
 {
-  Node *node = stmt();
-  if (at_eof())
-  {
-    return node;
-  }
-  return new_node(ND_SEQ, node, program());
+  Node *p, *node;
+  p = node = appendSeq(NULL, stmt());
+  while (!at_eof())
+    node = appendSeq(node, stmt());
+  return p;
 }
 
 Node *stmt()
@@ -118,6 +137,15 @@ Node *stmt()
     node->cond = cond;
     node->rhs = update;
     return node;
+  }
+  if (eat_op("{"))
+  {
+    if (eat_op("}"))
+      return new_node(ND_BLK, NULL, NULL);
+    Node *child = stmt();
+    while (!eat_op("}"))
+      child = appendSeq(child, stmt());
+    return new_node(ND_BLK, child, NULL);
   }
   Node *node = expr();
   must_eat(";");

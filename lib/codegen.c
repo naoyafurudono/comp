@@ -58,7 +58,8 @@ void gc_stack(Node *node)
   {
     return;
   }
-  if(node->expr){
+  if (node->expr)
+  {
     pop(0);
   }
 }
@@ -91,6 +92,8 @@ void genl(Node *node)
 // 式以外を実行した場合、その内側で式を実行するとしても、最終的にはスタックのサイズを変えてはならない
 void gen(Node *node)
 {
+  if (node == NULL)
+    return;
   char *end_then, *end_if, *begin_while, *end_while;
   switch (node->kind)
   {
