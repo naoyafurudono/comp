@@ -22,19 +22,6 @@ int enc(char *varname)
   }
   return (-1) * (16 + l->offset * 8);
 }
-
-void comment(char *fmt, ...)
-{
-  char *COMM = getenv("DEBUG");
-  if (COMM != NULL)
-  {
-    printf("@ ");
-    va_list ap;
-    va_start(ap, fmt);
-    vfprintf(stdout, fmt, ap);
-    printf("\n");
-  }
-}
 size_t label_count = 0;
 char *new_label_name()
 {
@@ -64,7 +51,7 @@ void gc_stack(Node *node)
   }
 }
 
-void prelude(size_t locals)
+void prologue(size_t locals)
 {
   // SPは16の倍数になっている必要がある
   size_t range = (((locals * 8 - 1) / 16) + 1) * 16;
@@ -72,7 +59,8 @@ void prelude(size_t locals)
   printf("    mov x29, SP\n");
   printf("    sub SP, SP, #%lu\n", range); // (全てのローカル変数はXnレジスタに格納されるので。)
 }
-void postlude()
+
+void epilogue()
 {
   printf("    mov SP, x29\n");
   pop(29);
@@ -118,7 +106,7 @@ void gen(Node *node)
   case ND_RET:
     gen(node->lhs);
     pop(0);
-    postlude();
+    epilogue();
     printf("    ret\n");
     return;
   case ND_SEQ:

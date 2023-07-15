@@ -57,11 +57,11 @@ int main(int argc, char **argv)
   printf("_main:\n");
   if (current_locals)
   {
-    prelude(current_locals->offset);
+    prologue(current_locals->offset);
   }
   else
   {
-    prelude(0);
+    prologue(0);
   }
   gen(node);
   return 0;

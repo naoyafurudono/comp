@@ -115,8 +115,8 @@ struct Locals
 Locals *applyLocals(Locals *locals, char *name);
 Locals *extendLocals(Locals *cur, char *name);
 extern Locals *current_locals;
-void prelude(size_t locals);
-void postlude();
+void prologue(size_t locals);
+void epilogue();
 void gen(Node *node);
 
 #endif
