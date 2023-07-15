@@ -12,10 +12,13 @@ assert() {
     echo "$input => $actual"
   else
     echo "$input => $expected expected, but got $actual"
-    exit 1
+    NOK=1
   fi
 }
 
+for ((i=-10; i < 10; i++)); do
+  assert $(( (i + 256) % 256 )) "a=b=$i; return b;"
+done
 assert 0 "return 0;"
 assert 42 "return 42;"
 assert 21 "return 5+20-4;"
@@ -68,4 +71,7 @@ assert 42 "a = 20; b = 22; return a + b;"
 assert 42 "a = 20; b = 22; return a + b; 3;"
 assert 3 "a=0; a=a+1; a=a+a+1; return a;"
 
+if [[ $NOK ]]; then
+  exit 1
+fi
 echo OK
