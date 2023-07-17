@@ -31,11 +31,6 @@ void error_at(char *loc, char *fmt, ...)
   exit(1);
 }
 
-void ret_42()
-{
-  printf("    mov x0, 42\n");
-  printf("    ret\n");
-}
 int main(int argc, char **argv)
 {
   if (argc != 2)

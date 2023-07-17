@@ -82,6 +82,7 @@ typedef enum
   ND_BLK
 } NodeKind;
 extern char *nd_kind_bin_op[];
+extern char *nd_kind_str[];
 
 typedef struct Node Node;
 struct Node

@@ -11,6 +11,27 @@ char *nd_kind_bin_op[] = {
     "gt",
     "le",
     "ge"};
+
+char *nd_kind_str[] = {
+    "ND_EQ",
+    "ND_NEQ",
+    "ND_LT",
+    "ND_GT",
+    "ND_LTE",
+    "ND_GTE",
+    "ND_ADD",
+    "ND_SUB",
+    "ND_MUL",
+    "ND_DIV",
+    "ND_NUM",
+    "ND_VAR",
+    "ND_ASS",
+    "ND_SEQ",
+    "ND_RET",
+    "ND_IF",
+    "ND_WHILE",
+    "ND_FOR",
+    "ND_BLK"};
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs)
 {
   Node *node = calloc(1, sizeof(Node));
@@ -47,7 +68,12 @@ Node *appendSeq(Node *seq, Node *node)
     return new_node(ND_SEQ, node, NULL);
   Node *rhs = new_node(ND_SEQ, node, NULL);
   if (seq->kind != ND_SEQ)
-    return new_node(ND_SEQ, seq, rhs);
+  {
+    Node *l = new_node(ND_SEQ, seq, new_node(ND_SEQ, rhs, NULL));
+    return l->rhs;
+  }
+  if (seq->lhs == NULL || seq->rhs != NULL)
+    error("bad seq provided: %s\n", nd_kind_str[seq->kind]);
   seq->rhs = new_node(ND_SEQ, rhs, NULL);
   return seq->rhs;
 }
@@ -131,11 +157,10 @@ Node *stmt()
       update = expr();
       must_eat(")");
     }
-    Node *then_n = stmt();
-    Node *node = new_node(ND_FOR, then_n, NULL);
+    Node *body = stmt();
+    Node *node = new_node(ND_FOR, body, update);
     node->init = init;
     node->cond = cond;
-    node->rhs = update;
     return node;
   }
   if (eat_op("{"))
@@ -143,9 +168,14 @@ Node *stmt()
     if (eat_op("}"))
       return new_node(ND_BLK, NULL, NULL);
     Node *child = stmt();
+    if (eat_op("}"))
+      return new_node(ND_BLK, child, NULL);
+
+    Node *cur, *p;
+    cur = p = appendSeq(NULL, child);
     while (!eat_op("}"))
-      child = appendSeq(child, stmt());
-    return new_node(ND_BLK, child, NULL);
+      cur = appendSeq(cur, stmt());
+    return new_node(ND_BLK, p, NULL);
   }
   Node *node = expr();
   must_eat(";");

@@ -55,7 +55,8 @@ void prologue(size_t locals)
 {
   // SPは16の倍数になっている必要がある
   size_t range = (((locals * 8 - 1) / 16) + 1) * 16;
-  push(29);
+  // push(29);
+  printf("    stp x29, x30, [SP, #-16]!\n");
   printf("    mov x29, SP\n");
   printf("    sub SP, SP, #%lu\n", range); // (全てのローカル変数はXnレジスタに格納されるので。)
 }
@@ -63,7 +64,8 @@ void prologue(size_t locals)
 void epilogue()
 {
   printf("    mov SP, x29\n");
-  pop(29);
+  // pop(29);
+  printf("    ldp x29, x30, [SP], #16\n");
 }
 void genl(Node *node)
 // lvalueの評価結果はbase pointerからのoffset
@@ -82,7 +84,6 @@ void gen(Node *node)
 {
   if (node == NULL)
     return;
-  char *end_then, *end_if, *begin_while, *end_while;
   switch (node->kind)
   {
   // exp
@@ -99,7 +100,8 @@ void gen(Node *node)
     push(0);
     return;
   case ND_VAR:
-    printf("    ldur x0, [x29, %d]\n", enc(node->name));
+    printf("    mov x1, %d\n", enc(node->name));
+    printf("    ldr x0, [x29, x1]\n");
     push(0);
     return;
   // stmt
@@ -116,8 +118,9 @@ void gen(Node *node)
     gc_stack(node->rhs);
     return;
   case ND_IF:
-    end_then = new_label_name();
-    end_if = new_label_name();
+  {
+    char *end_then = new_label_name();
+    char *end_if = new_label_name();
     gen(node->cond);
     pop(0);
     printf("    cbz x0, %s\n", end_then);
@@ -132,9 +135,11 @@ void gen(Node *node)
     }
     printf("%s:\n", end_if);
     return;
+  }
   case ND_WHILE:
-    begin_while = new_label_name();
-    end_while = new_label_name();
+  {
+    char *begin_while = new_label_name();
+    char *end_while = new_label_name();
     printf("%s:\n", begin_while);
     gen(node->cond);
     pop(0);
@@ -144,7 +149,33 @@ void gen(Node *node)
     printf("    b %s\n", begin_while);
     printf("%s:\n", end_while);
     return;
-
+  }
+  case ND_FOR:
+  {
+    char *begin_for = new_label_name();
+    char *end_for = new_label_name();
+    gen(node->init);
+    gc_stack(node->init);
+    printf("%s:\n", begin_for);
+    gen(node->cond);
+    pop(0);
+    printf("    cbz x0, %s\n", end_for);
+    gen(node->lhs);
+    gc_stack(node->lhs);
+    gen(node->rhs);
+    gc_stack(node->rhs);
+    printf("    b %s\n", begin_for);
+    printf("%s:\n", end_for);
+    return;
+  }
+  case ND_BLK:
+  {
+    gen(node->lhs);
+    gc_stack(node->lhs);
+    gen(node->rhs);
+    gc_stack(node->rhs);
+    return;
+  }
   default:;
   }
 
