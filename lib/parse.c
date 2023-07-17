@@ -31,7 +31,8 @@ char *nd_kind_str[] = {
     "ND_IF",
     "ND_WHILE",
     "ND_FOR",
-    "ND_BLK"};
+    "ND_BLK",
+    "ND_CALL"};
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs)
 {
   Node *node = calloc(1, sizeof(Node));
@@ -303,11 +304,30 @@ Node *primary()
     return node;
   }
   char *mb_var = eat_id();
-  if (mb_var)
+  if (mb_var == NULL)
   {
-    return new_node_var(mb_var);
+    return new_node_num(must_number());
   }
-  return new_node_num(must_number());
+  if (eat_op("("))
+  {
+    Node *node = new_node(ND_CALL, NULL, NULL);
+    node->name = mb_var;
+    if (eat_op(")"))
+      return node;  // 0 args
+
+    NodeList *args = calloc(1, sizeof(NodeList));
+    node->nds = args;
+    args->node = expr();
+    while (!eat_op(")"))
+    { // 2 or more args
+      must_eat(",");
+      args->next = calloc(1, sizeof(NodeList));
+      args->next->node = expr();
+      args = args->next;
+    }
+    return node;
+  }
+  return new_node_var(mb_var);
 }
 
 Locals *current_locals = NULL;

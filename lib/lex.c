@@ -92,7 +92,7 @@ Token *tokenize(char *p)
 
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' ||
         *p == '(' || *p == ')' || *p == '{' || *p == '}' ||
-        *p == ';')
+        *p == ';' || *p == ',')
     {
       cur = new_token(TK_RESERVED, cur, p++, 1);
       continue;
@@ -155,16 +155,11 @@ Token *tokenize(char *p)
       }
     }
 
-    if ('a' <= *p && *p <= 'z')
+    if(is_alpha(*p))
     {
       char *from = p;
-      for (p++; *p; p++)
-      {
-        if (!('a' <= *p && *p <= 'z'))
-        {
-          break;
-        }
-      }
+      for (p++; *p && is_id_member(*p); p++)
+        ;
       cur = new_token(TK_IDNT, cur, from, p - from);
       continue;
     }

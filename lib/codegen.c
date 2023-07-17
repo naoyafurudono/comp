@@ -100,6 +100,7 @@ void gen(Node *node)
     push(0);
     return;
   case ND_VAR:
+    fprintf(stderr, "variable: %s\n", node->name);
     printf("    mov x1, %d\n", enc(node->name));
     printf("    ldr x0, [x29, x1]\n");
     push(0);
@@ -174,6 +175,28 @@ void gen(Node *node)
     gc_stack(node->lhs);
     gen(node->rhs);
     gc_stack(node->rhs);
+    return;
+  }
+  case ND_CALL:
+  {
+    size_t args_len = 0;
+    NodeList *l = node->nds;
+    while (l)
+    {
+      gen(l->node);
+      l = l->next;
+      ++args_len;
+    }
+    if (args_len > 8)
+    {
+      error("gen: too many arguments");
+    }
+    for (int i = args_len - 1; i >= 0; --i)
+    {
+      pop(i);
+    }
+    printf("    bl _%s\n", node->name);
+    push(0);
     return;
   }
   default:;

@@ -55,6 +55,7 @@ unary ::= ("+" | "-")? primary
 primary ::= [a-z]
         | [0-9]+
         | "(" expr ")"
+        | ident "(" expr? ("," expr)* ")"
 */
 
 typedef enum
@@ -79,12 +80,21 @@ typedef enum
   ND_IF,
   ND_WHILE,
   ND_FOR,
-  ND_BLK
+  ND_BLK,
+  ND_CALL
 } NodeKind;
 extern char *nd_kind_bin_op[];
 extern char *nd_kind_str[];
 
 typedef struct Node Node;
+typedef struct NodeList NodeList;
+
+struct NodeList
+{
+  Node *node;
+  NodeList *next;
+};
+
 struct Node
 {
   NodeKind kind; // must
@@ -95,6 +105,7 @@ struct Node
   Node *cond;    // optional
   Node *init;    // optional
   bool expr;     // must
+  NodeList *nds;
 };
 
 Node *program();
