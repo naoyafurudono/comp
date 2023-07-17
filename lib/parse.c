@@ -308,12 +308,14 @@ Node *primary()
   {
     return new_node_num(must_number());
   }
-  if (eat_op("("))
-  {
+  if (!eat_op("("))
+    return new_node_var(mb_var);
+  else
+  { // function call
     Node *node = new_node(ND_CALL, NULL, NULL);
     node->name = mb_var;
     if (eat_op(")"))
-      return node;  // 0 args
+      return node; // 0 args
 
     NodeList *args = calloc(1, sizeof(NodeList));
     node->nds = args;
@@ -327,7 +329,6 @@ Node *primary()
     }
     return node;
   }
-  return new_node_var(mb_var);
 }
 
 Locals *current_locals = NULL;
