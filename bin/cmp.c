@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 
   user_input = argv[1];
   token = tokenize(argv[1]);
-  Node *node = program();
+  Defs *dfns = program();
   if (!at_eof())
   {
     error_at(token->str, "予期しないトークンです: %s", token->str);
@@ -58,6 +58,10 @@ int main(int argc, char **argv)
   {
     prologue(0);
   }
-  gen(node);
+  while (dfns)
+  {
+    gen(dfns->def->body);
+    dfns = dfns->next;
+  }
   return 0;
 }

@@ -94,14 +94,64 @@ Node *new_node_var(char *name)
   return node;
 }
 
-Node *program(), *stmt(), *expr(), *assign(), *equality(), *relational(), *add(), *mul(), *unary(), *primary();
-Node *program()
+Defs *appendDefs(Defs *defs, Def *def)
 {
+  Defs *p = calloc(1, sizeof(Defs));
+  p->def = def;
+  if (defs)
+    defs->next = p;
+  return p;
+}
+Defs *program();
+Def *dfn();
+Node *stmt(), *expr(), *assign(), *equality(), *relational(), *add(), *mul(), *unary(), *primary();
+Defs *program()
+{
+  Defs *p, *d;
+  p = d = appendDefs(NULL, dfn());
+  while (!at_eof())
+    d = appendDefs(d, dfn());
+  return p;
+}
+
+Params *appendParams(Params *params, char *name)
+{
+  Params *p = calloc(1, sizeof(Params));
+  p->name = name;
+  if (params)
+    params->next = p;
+  return p;
+}
+Def *dfn()
+{
+  char *name = eat_id();
+  if (name == NULL)
+    error("関数名がありません");
+  must_eat("(");
+  char *param1 = eat_id();
+  Params *params = NULL;
+  if (param1)
+    appendParams(params, param1);
+  while (eat_op(","))
+  {
+    char *param = eat_id();
+    if (param == NULL)
+      error("変数名が来るはずでした");
+    appendParams(params, param);
+  }
+  must_eat(")");
+  must_eat("{");
+
   Node *p, *node;
   p = node = appendSeq(NULL, stmt());
-  while (!at_eof())
+  while (!eat_op("}"))
     node = appendSeq(node, stmt());
-  return p;
+
+  Def *def = calloc(1, sizeof(Def));
+  def->name = name;
+  def->params = params;
+  def->body = p;
+  return def;
 }
 
 Node *stmt()

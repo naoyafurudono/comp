@@ -38,7 +38,8 @@ Token *tokenize(char *p);
 5. unary +, unary -
 6. ()
 
-program ::= stmt*
+program ::= dfn*
+dfn ::= ident "(" ident? ("," ident)* ")" "{" stmt* "}"
 stmt ::= expr ";"  // expression statement
       | "return" expr ";"  //jump statement
       | "if" "(" expr ")" stmt ("else" stmt)? // selection statement
@@ -86,6 +87,9 @@ typedef enum
 extern char *nd_kind_bin_op[];
 extern char *nd_kind_str[];
 
+typedef struct Defs Defs;
+typedef struct Def Def;
+typedef struct Params Params;
 typedef struct Node Node;
 typedef struct NodeList NodeList;
 
@@ -108,8 +112,24 @@ struct Node
   NodeList *nds;
 };
 
-Node *program();
+struct Defs
+{
+  Def *def;
+  Defs *next;
+};
+struct Def
+{
+  char *name;
+  Params *params;
+  Node *body;
+};
 
+struct Params {
+  char *name;
+  Params *next;
+};
+
+Defs *program();
 bool eat_op(char *op);
 char *eat_id();
 bool eat(TokenKind);
