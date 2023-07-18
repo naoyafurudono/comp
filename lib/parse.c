@@ -124,6 +124,7 @@ Params *appendParams(Params *params, char *name)
 }
 Def *dfn()
 {
+  reset_locals();
   char *name = eat_id();
   if (name == NULL)
     error("関数名がありません");
@@ -131,15 +132,23 @@ Def *dfn()
   char *param1 = eat_id();
   Params *params = NULL;
   if (param1)
-    appendParams(params, param1);
+    params = appendParams(params, param1);
+
+  Params *cur = params;
   while (eat_op(","))
   {
     char *param = eat_id();
     if (param == NULL)
       error("変数名が来るはずでした");
-    appendParams(params, param);
+    cur = appendParams(cur, param);
   }
   must_eat(")");
+  cur = params;
+  while (cur)
+  {
+    current_locals = extendLocals(current_locals, cur->name);
+    cur = cur->next;
+  }
   must_eat("{");
 
   Node *p, *node;
@@ -151,6 +160,7 @@ Def *dfn()
   def->name = name;
   def->params = params;
   def->body = p;
+  def->locals = current_locals;
   return def;
 }
 
@@ -382,6 +392,10 @@ Node *primary()
 }
 
 Locals *current_locals = NULL;
+void reset_locals()
+{
+  current_locals = NULL;
+}
 Locals *extendLocals(Locals *cur, char *name)
 {
   Locals *locals = calloc(1, sizeof(Locals));

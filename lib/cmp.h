@@ -92,6 +92,7 @@ typedef struct Def Def;
 typedef struct Params Params;
 typedef struct Node Node;
 typedef struct NodeList NodeList;
+typedef struct Locals Locals;
 
 struct NodeList
 {
@@ -122,6 +123,7 @@ struct Def
   char *name;
   Params *params;
   Node *body;
+  Locals *locals;
 };
 
 struct Params {
@@ -137,7 +139,6 @@ void must_eat(char *op);
 int must_number();
 bool at_eof();
 
-typedef struct Locals Locals;
 struct Locals
 {
   char *name;
@@ -146,9 +147,13 @@ struct Locals
 };
 Locals *applyLocals(Locals *locals, char *name);
 Locals *extendLocals(Locals *cur, char *name);
+void extendLocalsWithParams(Locals *cur, Params *params);
+void reset_locals();
 extern Locals *current_locals;
-void prologue(size_t locals);
-void epilogue();
-void gen(Node *node);
+
+void gen_dfn(Def *def);
+// void prologue(size_t locals);
+// void epilogue();
+// void gen(Node *node);
 
 #endif

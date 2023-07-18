@@ -5,6 +5,8 @@
 
 #include "cmp.h"
 
+void gen(Node *node);
+
 void pop(int reg)
 {
   printf("    ldr x%d, [SP], #16\n", reg);
@@ -13,9 +15,9 @@ void push(int reg)
 {
   printf("    str x%d, [SP, #-16]!\n", reg);
 }
-int enc(char *varname)
+int enc(char *varname, Locals *locals)
 {
-  Locals *l = applyLocals(current_locals, varname);
+  Locals *l = applyLocals(locals, varname);
   if (l == NULL)
   {
     error("gen: undefined variable %s", varname);
@@ -67,6 +69,22 @@ void epilogue()
   // pop(29);
   printf("    ldp x29, x30, [SP], #16\n");
 }
+
+void gen_dfn(Def *def)
+{
+  if (def == NULL)
+    return;
+  current_locals = def->locals;
+  printf("_%s:\n", def->name);
+  if (def->locals == NULL)
+    prologue(0);
+  else
+    prologue(def->locals->offset);
+  gen(def->body);
+  epilogue();
+  printf("    ret\n");
+}
+
 void genl(Node *node)
 // lvalueの評価結果はbase pointerからのoffset
 {
@@ -74,7 +92,7 @@ void genl(Node *node)
   {
     error("gen: cannot be a l-value");
   }
-  printf("    mov x0, #%d\n", enc(node->name));
+  printf("    mov x0, #%d\n", enc(node->name, current_locals));
   push(0);
 }
 // x29をベースポインタを保持するレジスタとして使う
@@ -100,8 +118,7 @@ void gen(Node *node)
     push(0);
     return;
   case ND_VAR:
-    fprintf(stderr, "variable: %s\n", node->name);
-    printf("    mov x1, %d\n", enc(node->name));
+    printf("    mov x1, %d\n", enc(node->name, current_locals));
     printf("    ldr x0, [x29, x1]\n");
     push(0);
     return;

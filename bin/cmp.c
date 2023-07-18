@@ -49,18 +49,9 @@ int main(int argc, char **argv)
   printf(".globl _main\n");
   printf(".text\n");
   printf(".balign 4\n");
-  printf("_main:\n");
-  if (current_locals)
+  while(dfns)
   {
-    prologue(current_locals->offset);
-  }
-  else
-  {
-    prologue(0);
-  }
-  while (dfns)
-  {
-    gen(dfns->def->body);
+    gen_dfn(dfns->def);
     dfns = dfns->next;
   }
   return 0;
