@@ -147,7 +147,6 @@ struct Locals
 };
 Locals *applyLocals(Locals *locals, char *name);
 Locals *extendLocals(Locals *cur, char *name);
-void extendLocalsWithParams(Locals *cur, Params *params);
 void reset_locals();
 extern Locals *current_locals;
 
