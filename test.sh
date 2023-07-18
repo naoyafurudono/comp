@@ -22,6 +22,11 @@ assert() {
 # done
 # assert 10 "for(i=0;i<10;i=i+1){i=i+1;} return i;"
 
+assert 55 "fib(n){ if (n < 2) return n; a = fib(n-1); b = fib(n-2); return a+b; } main(){ return fib(10); }"
+assert 55 "fact(n){ if (n <= 1) return n; return n * fact(n-1); } main(){ return fact(10); }"
+assert 120 "fact(n){ res = a; while(n>0){ res = res * n; n = n - 1; } return res; } main(){ return fact(5); }"
+assert 42 "echo(n){ return n; } main(){ return echo(42); }"
+assert 42 "ft(){ return 42; } main(){ return ft(); }"
 assert 55 "main(){ a=0; b=1; i=0; while(i < 10){ t=a+b; a=b; b=t; i=i+1; } return a; }"
 assert 45 "main(){ a=0; b=0; i=0; while(i < 10){ b = b+i;i=i+1; } return b; }"
 assert 1 "main(){ return 1; return 2; return 3; }"
