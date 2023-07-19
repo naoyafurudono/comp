@@ -53,14 +53,21 @@ void gc_stack(Node *node)
   }
 }
 
-void prologue(size_t locals)
+void prologue(Locals *locals)
 {
   // SPは16の倍数になっている必要がある
-  size_t range = (((locals * 8 - 1) / 16) + 1) * 16;
+  size_t size = locals == NULL ? 0 : locals->offset;
+  size_t range = (((size * 8 - 1) / 16) + 1) * 16;
   // push(29);
   printf("    stp x29, x30, [SP, #-16]!\n");
   printf("    mov x29, SP\n");
   printf("    sub SP, SP, #%lu\n", range); // (全てのローカル変数はXnレジスタに格納されるので。)
+  Locals *cur = locals;
+  while (cur)
+  {
+    printf("    str x%d, [x29, #%d]\n", cur->offset, enc(cur->name, locals));
+    cur = cur->next;
+  }
 }
 
 void epilogue()
@@ -77,9 +84,9 @@ void gen_dfn(Def *def)
   current_locals = def->locals;
   printf("_%s:\n", def->name);
   if (def->locals == NULL)
-    prologue(0);
+    prologue(current_locals);
   else
-    prologue(def->locals->offset);
+    prologue(current_locals);
   gen(def->body);
   epilogue();
   printf("    ret\n");

@@ -396,6 +396,13 @@ void reset_locals()
 {
   current_locals = NULL;
 }
+/**
+ * @brief curにnameをconsする
+ *
+ * @param cur
+ * @param name
+ * @return Locals*
+ */
 Locals *extendLocals(Locals *cur, char *name)
 {
   Locals *locals = calloc(1, sizeof(Locals));
