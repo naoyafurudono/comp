@@ -24,6 +24,7 @@ assert() {
 
 assert 55 "fib(n){ if (n < 2) return n; a = fib(n-1); b = fib(n-2); return a+b; } main(){ return fib(10); }"
 assert 120 "fact(n){ if (n <= 1) return 1; return n * fact(n-1); } main(){ return fact(5); }"
+assert 120 "fact(n){ if (n <= 1) return n; return n * fact(n-1); } main(){ return fact(5); }"
 assert 120 "fact(n){ res = 1; while(n>0){ res = res * n; n = n - 1; } return res; } main(){ return fact(5); }"
 assert 42 "echo(n){ return n; } main(){ return echo(42); }"
 assert 42 "ft(){ return 42; } main(){ return ft(); }"
