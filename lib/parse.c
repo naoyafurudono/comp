@@ -405,6 +405,8 @@ void reset_locals()
  */
 Locals *extendLocals(Locals *cur, char *name)
 {
+  if (applyLocals(cur, name) != NULL)
+    return cur;
   Locals *locals = calloc(1, sizeof(Locals));
   locals->name = name;
   if (cur)

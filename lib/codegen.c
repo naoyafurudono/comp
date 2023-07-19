@@ -53,19 +53,22 @@ void gc_stack(Node *node)
   }
 }
 
-void prologue(Locals *locals)
+void prologue(Def *dfn)
 {
   // SPは16の倍数になっている必要がある
-  size_t size = locals == NULL ? 0 : locals->offset;
-  size_t range = (((size * 8 - 1) / 16) + 1) * 16;
+  int size = dfn->locals == NULL ? 0 : dfn->locals->offset;
+  int range = (((size * 8 - 1) / 16) + 1) * 16;
   // push(29);
   printf("    stp x29, x30, [SP, #-16]!\n");
   printf("    mov x29, SP\n");
-  printf("    sub SP, SP, #%lu\n", range); // (全てのローカル変数はXnレジスタに格納されるので。)
-  Locals *cur = locals;
+  printf("    sub SP, SP, #%d\n", range); // (全てのローカル変数はXnレジスタに格納されるので。)
+  Params *cur = dfn->params;
   while (cur)
   {
-    printf("    str x%d, [x29, #%d]\n", cur->offset, enc(cur->name, locals));
+    Locals *local = applyLocals(dfn->locals, cur->name);
+    if (local == NULL)
+      error("gen: undefined variable %s", cur->name);
+    printf("    str x%d, [x29, #%d]\n", local->offset, enc(cur->name, local));
     cur = cur->next;
   }
 }
@@ -84,9 +87,9 @@ void gen_dfn(Def *def)
   current_locals = def->locals;
   printf("_%s:\n", def->name);
   if (def->locals == NULL)
-    prologue(current_locals);
+    prologue(def);
   else
-    prologue(current_locals);
+    prologue(def);
   gen(def->body);
   epilogue();
   printf("    ret\n");
