@@ -15,7 +15,7 @@ void push(int reg)
 {
   printf("    str x%d, [SP, #-16]!\n", reg);
 }
-int enc(char *varname, Locals *locals)
+int to_offset(char *varname, Locals *locals)
 {
   Locals *l = applyLocals(locals, varname);
   if (l == NULL)
@@ -68,7 +68,7 @@ void prologue(Def *dfn)
     Locals *local = applyLocals(dfn->locals, cur->name);
     if (local == NULL)
       error("gen: undefined variable %s", cur->name);
-    printf("    str x%d, [x29, #%d]\n", local->offset, enc(cur->name, local));
+    printf("    str x%d, [x29, #%d]\n", local->offset, to_offset(cur->name, local));
     cur = cur->next;
   }
 }
@@ -102,7 +102,7 @@ void genl(Node *node)
   {
     error("gen: cannot be a l-value");
   }
-  printf("    mov x0, #%d\n", enc(node->name, current_locals));
+  printf("    mov x0, #%d\n", to_offset(node->name, current_locals));
   push(0);
 }
 // x29をベースポインタを保持するレジスタとして使う
@@ -128,7 +128,7 @@ void gen(Node *node)
     push(0);
     return;
   case ND_VAR:
-    printf("    mov x1, %d\n", enc(node->name, current_locals));
+    printf("    mov x1, %d\n", to_offset(node->name, current_locals));
     printf("    ldr x0, [x29, x1]\n");
     push(0);
     return;
