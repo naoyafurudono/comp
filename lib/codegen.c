@@ -226,6 +226,15 @@ void gen(Node *node)
     push(0);
     return;
   }
+  case ND_REF:
+    genl(node->lhs);
+    return;
+  case ND_DEREF:
+    gen(node->lhs);
+    pop(0);
+    printf("    ldr x0, [fp, x0]\n");
+    push(0);
+    return;
   default:;
   }
 

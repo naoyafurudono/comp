@@ -53,6 +53,7 @@ relational ::= add ("<" add | "<=" add | ">" add | ">=" add)*
 add ::= mul ("+" mul | "-" mul)*
 mul ::= unary ("*" unary | "/" unary)*
 unary ::= ("+" | "-")? primary
+       | ("*" | "&") unary
 primary ::= [a-z]
         | [0-9]+
         | "(" expr ")"
@@ -74,6 +75,8 @@ typedef enum
   ND_NUM,
   ND_VAR,
   ND_ASS,
+  ND_REF,
+  ND_DEREF,
 
   // not expr
   ND_SEQ,

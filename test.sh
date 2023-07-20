@@ -22,6 +22,7 @@ assert() {
 # done
 # assert 10 "for(i=0;i<10;i=i+1){i=i+1;} return i;"
 
+assert 42 "main(){ x = 42; return *(&x); }"
 assert 55 "fib(n){ if (n < 2) return n; a = fib(n-1); b = fib(n-2); return a+b; } main(){ return fib(10); }"
 assert 120 "fact(n){ if (n <= 1) return 1; return n * fact(n-1); } main(){ return fact(5); }"
 assert 120 "fact(n){ if (n <= 1) return n; return n * fact(n-1); } main(){ return fact(5); }"
