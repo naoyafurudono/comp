@@ -39,13 +39,14 @@ Token *tokenize(char *p);
 6. ()
 
 program ::= dfn*
-dfn ::= ident "(" ident? ("," ident)* ")" "{" stmt* "}"
+dfn ::= type ident "(" (type ident)? ("," type ident)* ")" "{" decl* stmt* "}"
+decl ::= type ident";
 stmt ::= expr ";"  // expression statement
       | "return" expr ";"  //jump statement
       | "if" "(" expr ")" stmt ("else" stmt)? // selection statement
       | "while" "(" expr ")" stmt  // iteration statement
       | "for" "(" expr? ";" expr? ";" expr? ")" stmt // iteration statement
-      | "{" stmt* "}"  // compound statement
+      | "{" decl* stmt* "}"  // compound statement
 expr ::= assign
 assign ::= equality ("=" assign)?
 equality ::= relational ("==" relational | "!=" relational)*
