@@ -90,7 +90,6 @@ Node *new_node_var(char *name)
   Node *node = new_node(ND_VAR, NULL, NULL);
   node->name = name;
 
-  // current_locals = extendLocals(current_locals, name);
   return node;
 }
 
