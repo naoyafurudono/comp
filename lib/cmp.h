@@ -140,6 +140,7 @@ Defs *program();
 bool eat_op(char *op);
 char *eat_id();
 bool eat(TokenKind);
+bool tap(TokenKind);
 void must_eat(char *op);
 int must_number();
 bool at_eof();

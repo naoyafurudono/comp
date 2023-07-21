@@ -162,7 +162,7 @@ Token *tokenize(char *p)
       }
     }
 
-    if(is_alpha(*p))
+    if (is_alpha(*p))
     {
       char *from = p;
       for (p++; *p && is_id_member(*p); p++)
@@ -209,12 +209,15 @@ char *eat_id()
 
 bool eat(TokenKind kind)
 {
-  if (token->kind != kind)
-  {
-    return false;
-  }
-  token = token->next;
-  return true;
+  bool res = tap(kind);
+  if (res)
+    token = token->next;
+  return res;
+}
+
+bool tap(TokenKind kind)
+{
+  return token->kind == kind;
 }
 
 // effect exit(1), read/write token

@@ -90,7 +90,7 @@ Node *new_node_var(char *name)
   Node *node = new_node(ND_VAR, NULL, NULL);
   node->name = name;
 
-  current_locals = extendLocals(current_locals, name);
+  // current_locals = extendLocals(current_locals, name);
   return node;
 }
 
@@ -170,6 +170,8 @@ Def *dfn()
     cur = cur->next;
   }
   must_eat("{");
+  while(tap(TK_INT))
+    decl();
 
   Node *p, *node;
   p = node = appendSeq(NULL, stmt());
@@ -246,6 +248,8 @@ Node *stmt()
   }
   if (eat_op("{"))
   {
+    while(tap(TK_INT))
+      decl();
     if (eat_op("}"))
       return new_node(ND_BLK, NULL, NULL);
     Node *child = stmt();
