@@ -22,7 +22,7 @@ assert() {
 # done
 # assert 10 "for(i=0;i<10;i=i+1){i=i+1;} return i;"
 
-assert 42 "int f(int x){ return x; } int main(){ return f(42); }"
+assert 42 "int f(int x, int y){ return x * y; } int main(){ return f(3, 14); }"
 assert 42 "int f(int a, int b){ return *(&a - 8);} int main(){ return f(0, 42); }"
 assert 42 "int main(){ x = 42; return *(&x); }"
 assert 55 "int fib(int n){ if (n < 2) return n; a = fib(n-1); b = fib(n-2); return a+b; } int main(){ return fib(10); }"
