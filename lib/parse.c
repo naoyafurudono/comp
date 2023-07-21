@@ -105,6 +105,7 @@ Defs *appendDefs(Defs *defs, Def *def)
 Defs *program();
 Def *dfn();
 Params *param(Params *cur);
+void decl();
 Node *stmt(), *expr(), *assign(), *equality(), *relational(), *add(), *mul(), *unary(), *primary();
 Defs *program()
 {
@@ -126,8 +127,7 @@ Params *appendParams(Params *params, char *name)
 
 Params *param(Params *cur)
 {
-  char *tp = eat_id();
-  if (strcmp(tp, "int") != 0)
+  if (!eat(TK_INT))
     error("int以外の型はサポートしていません");
   char *name = eat_id();
   if (name == NULL)
@@ -135,11 +135,21 @@ Params *param(Params *cur)
   return appendParams(cur, name);
 }
 
+void decl()
+{
+  if (!eat(TK_INT))
+    error("int以外の型はサポートしていません");
+  char *name = eat_id();
+  if (name == NULL)
+    error("変数名がありません");
+  current_locals = extendLocals(current_locals, name);
+  must_eat(";");
+}
+
 Def *dfn()
 {
   reset_locals();
-  char *tp = eat_id();
-  if (strcmp(tp, "int") != 0)
+  if (!eat(TK_INT))
     error("int以外の型はサポートしていません");
   char *name = eat_id();
   if (name == NULL)
@@ -153,19 +163,6 @@ Def *dfn()
       cur = param(cur);
     must_eat(")");
   }
-  // char *param1 = eat_id();
-  // Params *params = NULL;
-  // if (param1)
-  //   params = appendParams(params, param1);
-
-  // Params *cur = params;
-  // while (eat_op(","))
-  // {
-  //   char *param = eat_id();
-  //   if (param == NULL)
-  //     error("変数名が来るはずでした");
-  //   cur = appendParams(cur, param);
-  // }
   Params *cur = params;
   while (cur)
   {

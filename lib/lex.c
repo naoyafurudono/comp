@@ -84,6 +84,12 @@ Token *tokenize(char *p)
       p += 3;
       continue;
     }
+    if (is_keyword(p, "int"))
+    {
+      cur = new_token(TK_INT, cur, p, 3);
+      p += 3;
+      continue;
+    }
     if (isspace(*p))
     {
       p++;
