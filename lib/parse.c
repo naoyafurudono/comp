@@ -305,112 +305,66 @@ Node *assign()
     return new_node(ND_ASS, node, rhs);
   }
   else
-  {
     return node;
-  }
 }
 Node *equality()
 {
   Node *node = relational();
   while (true)
-  {
     if (eat_op("=="))
-    {
       node = new_node(ND_EQ, node, relational());
-    }
     else if (eat_op("!="))
-    {
       node = new_node(ND_NEQ, node, relational());
-    }
     else
-    {
       return node;
-    }
-  }
 }
 Node *relational()
 {
   Node *node = add();
   while (true)
-  {
     if (eat_op("<"))
-    {
       node = new_node(ND_LT, node, add());
-    }
     else if (eat_op("<="))
-    {
       node = new_node(ND_LTE, node, add());
-    }
     else if (eat_op(">"))
-    {
       node = new_node(ND_GT, node, add());
-    }
     else if (eat_op(">="))
-    {
       node = new_node(ND_GTE, node, add());
-    }
     else
-    {
       return node;
-    }
-  }
 }
 Node *add()
 {
   Node *node = mul();
   while (true)
-  {
     if (eat_op("+"))
-    {
       node = new_node(ND_ADD, node, mul());
-    }
     else if (eat_op("-"))
-    {
       node = new_node(ND_SUB, node, mul());
-    }
     else
-    {
       return node;
-    }
-  }
 }
 Node *mul()
 {
   Node *node = unary();
   while (true)
-  {
     if (eat_op("*"))
-    {
       node = new_node(ND_MUL, node, unary());
-    }
     else if (eat_op("/"))
-    {
       node = new_node(ND_DIV, node, unary());
-    }
     else
-    {
       return node;
-    }
-  }
 }
 Node *unary()
 {
   if (eat_op("+"))
-  {
     return primary();
-  }
   if (eat_op("-"))
-  {
     return new_node(ND_SUB, new_node_num(0), primary());
-  }
   if (eat_op("*"))
-  {
     return new_node(ND_DEREF, unary(), NULL);
-  }
   if (eat_op("&"))
-  {
     return new_node(ND_REF, unary(), NULL);
-  }
   return primary();
 }
 Node *primary()
@@ -423,9 +377,7 @@ Node *primary()
   }
   char *mb_var = eat_id();
   if (mb_var == NULL)
-  {
     return new_node_num(must_number());
-  }
   if (!eat_op("("))
     return new_node_var(mb_var);
   else
