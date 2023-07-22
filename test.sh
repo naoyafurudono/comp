@@ -20,6 +20,7 @@ assert() {
   fi
 }
 
+assert 3 "int main() { int x; int *y; y = &x; *y = 3; return x; }"
 assert 55 "int main() { int a; int b; int i; a=0; b=1; for(i=0; i < 9; i = i+1){ int t; t = b; b = a+b; a= t;} return b; }"
 for ((i=-10; i < 10; i++)); do
   assert $(( (i + 256) % 256 )) "int main() { int a; int b; a=b=$i; return b; }"
