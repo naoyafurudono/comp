@@ -26,7 +26,7 @@ assert() {
 # done
 # assert 10 "for(i=0;i<10;i=i+1){i=i+1;} return i;"
 
-# assert 42 "int main(){ int x; set42(&x); return x; } int set42(int *x){ *x = 42; return 0; }"
+assert 42 "int main(){ int x; x=0; set42(&x); return x; } int set42(int *x){ *x = 42; return 0; }"
 assert 55 "int main(){ int a; int b; int i; a=0; b=1; i=0; while(i < 10){ int t; t=a+b; a=b; b=t; i=i+1; } return a; }"
 assert 42 "int f(int x, int y){ return x * y; } int main(){ return f(3, 14); }"
 assert 42 "int f(int a, int b){ return *(&a - 8);} int main(){ return f(0, 42); }"
