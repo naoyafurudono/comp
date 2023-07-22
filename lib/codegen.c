@@ -119,6 +119,8 @@ void gen(Node *node)
 {
   if (node == NULL)
     return;
+  if (node->expr && node->tp == NULL)
+    error("gen: node->tp of %s is NULL", nd_kind_str[node->kind]);
   switch (node->kind)
   {
   // exp
@@ -253,14 +255,24 @@ void gen(Node *node)
   switch (node->kind)
   {
   case ND_ADD:
-    pop(1);
-    pop(0);
+    pop(1); // rhs
+    pop(0); // lhs
+    printf("    mov x8, #8\n");
+    if (node->lhs->tp->kind == TY_PTR)
+      printf("    mul x1, x1, x8\n");
+    if (node->rhs->tp->kind == TY_PTR)
+      printf("    mul x0, x0, x8\n");
     printf("    add x0, x0, x1\n");
     push(0);
     return;
   case ND_SUB:
     pop(1);
     pop(0);
+    printf("    mov x8, #8\n");
+    if (node->lhs->tp->kind == TY_PTR)
+      printf("    mul x1, x1, x8\n");
+    if (node->rhs->tp->kind == TY_PTR)
+      printf("    mul x0, x0, x8\n");
     printf("    sub x0, x0, x1\n");
     push(0);
     return;

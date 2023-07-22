@@ -58,48 +58,50 @@ void infer_dfn(Def *dfn, Defs *defs)
 
 // exprの型を検査し、型を返す
 // 副作用として、exprとその子孫に型をセットする
-Type *infer(Node *expr, Defs *defs, Locals *locals)
+Type *infer(Node *node, Defs *defs, Locals *locals)
 {
-  if (expr == NULL)
+  if (node == NULL)
     return NULL;
-  switch (expr->kind)
+  switch (node->kind)
   {
   case ND_NUM:
-    expr->tp = extendType(NULL, TY_INT);
-    return expr->tp;
+    node->tp = extendType(NULL, TY_INT);
+    return node->tp;
   case ND_VAR:
   {
-    Locals *l = applyLocals(locals, expr->name);
+    Locals *l = applyLocals(locals, node->name);
     if (l == NULL)
-      error("infer: undefined variable %s", expr->name);
-    expr->tp = l->tp;
-    return expr->tp;
+      error("infer: undefined variable %s", node->name);
+    node->tp = l->tp;
+    return node->tp;
   }
   case ND_REF:
   {
-    Type *tp = infer(expr->lhs, defs, locals);
+    Type *tp = infer(node->lhs, defs, locals);
     if (tp == NULL)
       error("infer: lhs is NULL");
-    expr->tp = extendType(tp, TY_PTR);
-    return expr->tp;
+    node->tp = extendType(tp, TY_PTR);
+    return node->tp;
   }
   case ND_DEREF:
   {
-    Type *tp = infer(expr->lhs, defs, locals);
+    Type *tp = infer(node->lhs, defs, locals);
     if (tp == NULL)
       error("infer: lhs is NULL");
     if (tp->kind != TY_PTR)
       error("infer: lhs is not TY_PTR");
-    expr->tp = tp->inner;
-    return expr->tp;
+    node->tp = tp->inner;
+    if (node->tp == NULL)
+      error("internal infer: node->tp is NULL");
+    return node->tp;
   }
   case ND_CALL:
   {
-    Def *def = applyDefs(defs, expr->name);
+    Def *def = applyDefs(defs, node->name);
     if (def == NULL)
-      error("infer: undefined function %s", expr->name);
+      error("infer: undefined function %s", node->name);
     Params *params = def->params;
-    NodeList *args = expr->nds;
+    NodeList *args = node->nds;
 
     while (params != NULL && args != NULL)
     {
@@ -111,25 +113,25 @@ Type *infer(Node *expr, Defs *defs, Locals *locals)
     }
     if (params != NULL || args != NULL)
       error("infer: number of arguments does not match");
-    expr->tp = def->tp;
-    return expr->tp;
+    node->tp = def->tp;
+    return node->tp;
   }
   case ND_ASS:
   case ND_EQ:
   case ND_NEQ:
   {
-    Type *l = infer(expr->lhs, defs, locals);
-    Type *r = infer(expr->rhs, defs, locals);
+    Type *l = infer(node->lhs, defs, locals);
+    Type *r = infer(node->rhs, defs, locals);
     if (!tpcmp(l, r))
       error("型エラー");
-    expr->tp = r;
-    return expr->tp;
+    node->tp = r;
+    return node->tp;
   }
   case ND_ADD:
   case ND_SUB:
   {
-    Type *lhs = infer(expr->lhs, defs, locals);
-    Type *rhs = infer(expr->rhs, defs, locals);
+    Type *lhs = infer(node->lhs, defs, locals);
+    Type *rhs = infer(node->rhs, defs, locals);
     if (lhs == NULL || rhs == NULL)
       error("infer: lhs or rhs is NULL");
 
@@ -139,16 +141,16 @@ Type *infer(Node *expr, Defs *defs, Locals *locals)
     case 0b00:
       error("pointers cannot be added/subtracted");
     case 0b11:
-      expr->tp = extendType(NULL, TY_INT);
+      node->tp = extendType(NULL, TY_INT);
       break;
     case 0b01:
-      expr->tp = lhs;
+      node->tp = lhs;
       break;
     case 0b10:
-      expr->tp = rhs;
+      node->tp = rhs;
       break;
     }
-    return expr->tp;
+    return node->tp;
   }
 
   case ND_LT:
@@ -158,62 +160,61 @@ Type *infer(Node *expr, Defs *defs, Locals *locals)
   case ND_MUL:
   case ND_DIV:
   {
-    Type *lhs = infer(expr->lhs, defs, locals);
-    Type *rhs = infer(expr->rhs, defs, locals);
+    Type *lhs = infer(node->lhs, defs, locals);
+    Type *rhs = infer(node->rhs, defs, locals);
     if (lhs == NULL || rhs == NULL)
       error("infer: lhs or rhs is NULL");
     if (lhs->kind != TY_INT || rhs->kind != TY_INT)
       error("infer: lhs or rhs is not TY_INT");
-    expr->tp = extendType(NULL, TY_INT);
-    return expr->tp;
+    node->tp = extendType(NULL, TY_INT);
+    return node->tp;
   }
   case ND_SEQ:
   {
-    infer(expr->lhs, defs, locals);
-    infer(expr->rhs, defs, locals);
+    infer(node->lhs, defs, locals);
+    infer(node->rhs, defs, locals);
     return NULL;
   }
   case ND_RET:
   {
-    Type *ret_tp = infer(expr->lhs, defs, locals);
+    Type *ret_tp = infer(node->lhs, defs, locals);
     if (!tpcmp(current_def->tp, ret_tp))
       error("infer: return する式の型が関数の返り値型にマッチしない");
     return NULL;
   }
   case ND_IF:
   {
-    infer(expr->lhs, defs, locals);
-    infer(expr->rhs, defs, locals);
-    Type *cond_tp = infer(expr->cond, defs, locals);
+    infer(node->lhs, defs, locals);
+    infer(node->rhs, defs, locals);
+    Type *cond_tp = infer(node->cond, defs, locals);
     if (cond_tp->kind != TY_INT)
       error("infer: cond is not TY_INT");
     return NULL;
   }
   case ND_WHILE:
   {
-    infer(expr->lhs, defs, locals);
-    infer(expr->rhs, defs, locals);
-    infer(expr->init, defs, locals);
-    Type *cond_tp = infer(expr->cond, defs, locals);
+    infer(node->lhs, defs, locals);
+    Type *cond_tp = infer(node->cond, defs, locals);
     if (cond_tp->kind != TY_INT)
       error("infer: cond is not TY_INT");
     return NULL;
   }
   case ND_FOR:
   {
-    infer(expr->lhs, defs, locals);
-    Type *cond_tp = infer(expr->cond, defs, locals);
-    if (!(expr->cond == NULL && cond_tp == NULL) && cond_tp->kind != TY_INT)
+    infer(node->lhs, defs, locals);
+    infer(node->rhs, defs, locals);
+    infer(node->init, defs, locals);
+    Type *cond_tp = infer(node->cond, defs, locals);
+    if (!(node->cond == NULL && cond_tp == NULL) && cond_tp->kind != TY_INT)
       error("infer: cond is not TY_INT");
     return NULL;
   }
   case ND_BLK:
   {
-    infer(expr->lhs, defs, locals);
+    infer(node->lhs, defs, locals);
     return NULL;
   }
-  default:
-    error("実装忘れ");
   }
+  error("実装忘れ");
   return NULL; // never
 }
