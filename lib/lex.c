@@ -184,7 +184,20 @@ Token *tokenize(char *p)
   return head.next;
 }
 
+void must_eat_op(char *op)
+{
+  if (!eat_op(op))
+    error_at(token->str, "'%s'ではありません", op);
+}
+
 bool eat_op(char *op)
+{
+  bool res = tap_op(op);
+  if (res)
+    token = token->next;
+  return res;
+}
+bool tap_op(char *op)
 {
   if (token->kind != TK_RESERVED ||
       token->len != strlen(op) ||
@@ -192,7 +205,6 @@ bool eat_op(char *op)
   {
     return false;
   }
-  token = token->next;
   return true;
 }
 
@@ -207,6 +219,12 @@ char *eat_id()
   return name;
 }
 
+void must_eat(TokenKind kind)
+{
+  if (!eat(kind))
+    error_at(token->str, "トークンが思ったのと違います");
+}
+
 bool eat(TokenKind kind)
 {
   bool res = tap(kind);
@@ -218,18 +236,6 @@ bool eat(TokenKind kind)
 bool tap(TokenKind kind)
 {
   return token->kind == kind;
-}
-
-// effect exit(1), read/write token
-void must_eat(char *op)
-{
-  if (token->kind != TK_RESERVED ||
-      token->len != strlen(op) ||
-      memcmp(token->str, op, token->len))
-  {
-    error_at(token->str, "'%s'ではありません", op);
-  }
-  token = token->next;
 }
 
 // effect exit(1), read/write token

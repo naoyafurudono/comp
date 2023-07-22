@@ -42,6 +42,7 @@ Token *tokenize(char *p);
 program ::= dfn*
 dfn ::= type ident "(" (type ident)? ("," type ident)* ")" "{" decl* stmt* "}"
 decl ::= type ident";
+type ::= "int" | "*" type
 stmt ::= expr ";"  // expression statement
       | "return" expr ";"  //jump statement
       | "if" "(" expr ")" stmt ("else" stmt)? // selection statement
@@ -95,6 +96,7 @@ extern char *nd_kind_str[];
 typedef struct Defs Defs;
 typedef struct Def Def;
 typedef struct Params Params;
+typedef struct Type Type;
 typedef struct Node Node;
 typedef struct NodeList NodeList;
 typedef struct Locals Locals;
@@ -129,19 +131,34 @@ struct Def
   Params *params;
   Node *body;
   Locals *locals;
+  Type *tp;
 };
 
-struct Params {
+struct Params
+{
   char *name;
+  Type *tp;
   Params *next;
 };
 
+struct Type
+{
+  enum
+  {
+    TY_INT,
+    TY_PTR
+  } kind;
+  Type *inner;
+};
+
 Defs *program();
+void must_eat_op(char *op);
 bool eat_op(char *op);
+bool tap_op(char *op);
 char *eat_id();
 bool eat(TokenKind);
+void must_eat(TokenKind);
 bool tap(TokenKind);
-void must_eat(char *op);
 int must_number();
 bool at_eof();
 
@@ -150,9 +167,10 @@ struct Locals
   char *name;
   int offset;
   Locals *next;
+  Type *tp;
 };
 Locals *applyLocals(Locals *locals, char *name);
-Locals *extendLocals(Locals *cur, char *name);
+Locals *extendLocals(Locals *cur, char *name, Type *tp);
 void reset_locals();
 extern Locals *current_locals;
 

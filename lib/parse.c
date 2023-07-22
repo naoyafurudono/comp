@@ -104,6 +104,7 @@ Defs *appendDefs(Defs *defs, Def *def)
 Defs *program();
 Def *dfn();
 Params *param(Params *cur);
+Type *type();
 void decl();
 Node *stmt(), *expr(), *assign(), *equality(), *relational(), *add(), *mul(), *unary(), *primary();
 Defs *program()
@@ -115,10 +116,11 @@ Defs *program()
   return p;
 }
 
-Params *appendParams(Params *params, char *name)
+Params *appendParams(Params *params, char *name, Type *tp)
 {
   Params *p = calloc(1, sizeof(Params));
   p->name = name;
+  p->tp = tp;
   if (params)
     params->next = p;
   return p;
@@ -126,50 +128,67 @@ Params *appendParams(Params *params, char *name)
 
 Params *param(Params *cur)
 {
-  if (!eat(TK_INT))
-    error("int以外の型はサポートしていません");
+  Type *tp = type();
   char *name = eat_id();
   if (name == NULL)
     error("仮引数が来るはずでした");
-  return appendParams(cur, name);
+  return appendParams(cur, name, tp);
+}
+
+Type *extendType(Type *cur)
+{
+  if (cur == NULL)
+    error("extendType: cur is NULL");
+  Type *tp = calloc(1, sizeof(Type));
+  tp->inner = cur;
+  tp->kind = TY_PTR;
+  return tp;
+}
+Type *type()
+{
+  must_eat(TK_INT);
+  Type *tp;
+  tp = calloc(1, sizeof(Type));
+  tp->kind = TY_INT;
+  while (eat_op("*"))
+    tp = extendType(tp);
+  return tp;
 }
 
 void decl()
 {
-  if (!eat(TK_INT))
-    error("int以外の型はサポートしていません");
+  Type *tp = type();
   char *name = eat_id();
   if (name == NULL)
     error("変数名がありません");
-  current_locals = extendLocals(current_locals, name);
-  must_eat(";");
+  current_locals = extendLocals(current_locals, name, tp);
+  must_eat_op(";");
 }
 
 Def *dfn()
 {
   reset_locals();
-  if (!eat(TK_INT))
-    error("int以外の型はサポートしていません");
+  Type *tp = type();
   char *name = eat_id();
   if (name == NULL)
     error("関数名がありません");
-  must_eat("(");
+  must_eat_op("(");
   Params *params = NULL;
   if (!eat_op(")"))
   {
     Params *cur = params = param(NULL);
     while (eat_op(","))
       cur = param(cur);
-    must_eat(")");
+    must_eat_op(")");
   }
   Params *cur = params;
   while (cur)
   {
-    current_locals = extendLocals(current_locals, cur->name);
+    current_locals = extendLocals(current_locals, cur->name, cur->tp);
     cur = cur->next;
   }
-  must_eat("{");
-  while(tap(TK_INT))
+  must_eat_op("{");
+  while (tap(TK_INT))
     decl();
 
   Node *p, *node;
@@ -178,6 +197,7 @@ Def *dfn()
     node = appendSeq(node, stmt());
 
   Def *def = calloc(1, sizeof(Def));
+  def->tp = tp;
   def->name = name;
   def->params = params;
   def->body = p;
@@ -190,14 +210,14 @@ Node *stmt()
   if (eat(TK_RETURN))
   {
     Node *node = new_node(ND_RET, expr(), NULL);
-    must_eat(";");
+    must_eat_op(";");
     return node;
   }
   if (eat(TK_IF))
   {
-    must_eat("(");
+    must_eat_op("(");
     Node *cond = expr();
-    must_eat(")");
+    must_eat_op(")");
     Node *then_n = stmt();
     Node *node = new_node(ND_IF, then_n, NULL);
     node->cond = cond;
@@ -210,9 +230,9 @@ Node *stmt()
   }
   if (eat(TK_WHILE))
   {
-    must_eat("(");
+    must_eat_op("(");
     Node *cond = expr();
-    must_eat(")");
+    must_eat_op(")");
     Node *then_n = stmt();
     Node *node = new_node(ND_WHILE, then_n, NULL);
     node->cond = cond;
@@ -220,24 +240,24 @@ Node *stmt()
   }
   if (eat(TK_FOR))
   {
-    must_eat("(");
+    must_eat_op("(");
     Node *init = NULL;
     Node *cond = NULL;
     Node *update = NULL;
     if (!eat_op(";"))
     {
       init = expr();
-      must_eat(";");
+      must_eat_op(";");
     }
     if (!eat_op(";"))
     {
       cond = expr();
-      must_eat(";");
+      must_eat_op(";");
     }
     if (!eat_op(")"))
     {
       update = expr();
-      must_eat(")");
+      must_eat_op(")");
     }
     Node *body = stmt();
     Node *node = new_node(ND_FOR, body, update);
@@ -247,7 +267,7 @@ Node *stmt()
   }
   if (eat_op("{"))
   {
-    while(tap(TK_INT))
+    while (tap(TK_INT))
       decl();
     if (eat_op("}"))
       return new_node(ND_BLK, NULL, NULL);
@@ -262,7 +282,7 @@ Node *stmt()
     return new_node(ND_BLK, p, NULL);
   }
   Node *node = expr();
-  must_eat(";");
+  must_eat_op(";");
   return node;
 }
 Node *expr()
@@ -391,7 +411,7 @@ Node *primary()
   if (eat_op("("))
   {
     Node *node = expr();
-    must_eat(")");
+    must_eat_op(")");
     return node;
   }
   char *mb_var = eat_id();
@@ -413,7 +433,7 @@ Node *primary()
     args->node = expr();
     while (!eat_op(")"))
     { // 2 or more args
-      must_eat(",");
+      must_eat_op(",");
       args->next = calloc(1, sizeof(NodeList));
       args->next->node = expr();
       args = args->next;
@@ -434,12 +454,13 @@ void reset_locals()
  * @param name
  * @return Locals*
  */
-Locals *extendLocals(Locals *cur, char *name)
+Locals *extendLocals(Locals *cur, char *name, Type *tp)
 {
   if (applyLocals(cur, name) != NULL)
     return cur;
   Locals *locals = calloc(1, sizeof(Locals));
   locals->name = name;
+  locals->tp = tp;
   if (cur)
     locals->offset = cur->offset + 1;
   else
