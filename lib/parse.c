@@ -135,23 +135,30 @@ Params *param(Params *cur)
   return appendParams(cur, name, tp);
 }
 
-Type *extendType(Type *cur)
+Type *extendType(Type *cur, TypeKind kind)
 {
-  if (cur == NULL)
-    error("extendType: cur is NULL");
   Type *tp = calloc(1, sizeof(Type));
-  tp->inner = cur;
-  tp->kind = TY_PTR;
-  return tp;
+  switch (kind)
+  {
+  case TY_INT:
+    tp->kind = TY_INT;
+    return tp;
+  case TY_PTR:
+    if (cur == NULL)
+      error("extendType: cur is NULL");
+    tp->inner = cur;
+    tp->kind = TY_PTR;
+    return tp;
+  default:
+    error("extendType: invalid kind");
+  }
 }
 Type *type()
 {
   must_eat(TK_INT);
-  Type *tp;
-  tp = calloc(1, sizeof(Type));
-  tp->kind = TY_INT;
+  Type *tp = extendType(NULL, TY_INT);
   while (eat_op("*"))
-    tp = extendType(tp);
+    tp = extendType(tp, TY_PTR);
   return tp;
 }
 

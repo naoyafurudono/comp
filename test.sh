@@ -7,6 +7,17 @@ assert() {
   input="$2"
 
   ./cmp "$input" >tmp.s
+
+  # type check
+  res=$?
+  if [ $res -ne 0 ]; then
+    echo "type error"
+    echo "$input"
+    ng=$((ng + 1))
+    return
+  fi
+
+  # execute
   cc -o tmp tmp.s
   ./tmp
   actual="$?"
@@ -22,8 +33,8 @@ assert() {
 
 assert 3 "int main() { int x; int *y; y = &x; *y = 3; return x; }"
 assert 55 "int main() { int a; int b; int i; a=0; b=1; for(i=0; i < 9; i = i+1){ int t; t = b; b = a+b; a= t;} return b; }"
-for ((i=-10; i < 10; i++)); do
-  assert $(( (i + 256) % 256 )) "int main() { int a; int b; a=b=$i; return b; }"
+for ((i = -10; i < 10; i++)); do
+  assert $(((i + 256) % 256)) "int main() { int a; int b; a=b=$i; return b; }"
 done
 assert 10 "int main() { int i; for(i=0;i<10;i=i+1){i=i+1;} return i; } "
 

@@ -116,8 +116,9 @@ struct Node
   Node *rhs;     // optional
   Node *cond;    // optional
   Node *init;    // optional
-  bool expr;     // must
   NodeList *nds;
+  bool expr; // must
+  Type *tp;  // iff expr
 };
 
 struct Defs
@@ -125,6 +126,8 @@ struct Defs
   Def *def;
   Defs *next;
 };
+
+Def *applyDefs(Defs *defs, char *name);
 struct Def
 {
   char *name;
@@ -141,15 +144,17 @@ struct Params
   Params *next;
 };
 
+typedef enum
+{
+  TY_INT,
+  TY_PTR
+} TypeKind;
 struct Type
 {
-  enum
-  {
-    TY_INT,
-    TY_PTR
-  } kind;
+  TypeKind kind;
   Type *inner;
 };
+Type *extendType(Type *cur, TypeKind kind);
 
 Defs *program();
 void must_eat_op(char *op);
@@ -173,6 +178,10 @@ Locals *applyLocals(Locals *locals, char *name);
 Locals *extendLocals(Locals *cur, char *name, Type *tp);
 void reset_locals();
 extern Locals *current_locals;
+
+Type *infer(Node *expr, Defs *defs, Locals *locals);
+void infer_dfn(Def *def, Defs *defs);
+void infer_dfns(Defs *dfns);
 
 void gen_dfn(Def *def);
 #endif

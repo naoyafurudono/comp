@@ -46,10 +46,11 @@ int main(int argc, char **argv)
   {
     error_at(token->str, "予期しないトークンです: %s", token->str);
   }
+  infer_dfns(dfns);
   printf(".globl _main\n");
   printf(".text\n");
   printf(".balign 4\n");
-  while(dfns)
+  while (dfns)
   {
     gen_dfn(dfns->def);
     dfns = dfns->next;
