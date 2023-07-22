@@ -175,8 +175,4 @@ void reset_locals();
 extern Locals *current_locals;
 
 void gen_dfn(Def *def);
-// void prologue(size_t locals);
-// void epilogue();
-// void gen(Node *node);
-
 #endif
