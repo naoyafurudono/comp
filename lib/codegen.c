@@ -96,14 +96,21 @@ void gen_dfn(Def *def)
 }
 
 void genl(Node *node)
-// lvalueの評価結果はbase pointerからのoffset
+// lvalueの評価結果はメモリのアドレス
 {
-  if (node->kind != ND_VAR)
+  switch (node->kind)
   {
+  case ND_VAR:
+    printf("    mov x0, #%d\n", to_offset(node->name, current_locals));
+    printf("    add x0, x29, x0\n");
+    push(0);
+    return;
+  case ND_DEREF:
+    gen(node->lhs);
+    return;
+  default:
     error("gen: cannot be a l-value");
   }
-  printf("    mov x0, #%d\n", to_offset(node->name, current_locals));
-  push(0);
 }
 // x29をベースポインタを保持するレジスタとして使う
 // 式を実行する場合、その結果はスタックにpushされる
@@ -124,12 +131,13 @@ void gen(Node *node)
     gen(node->rhs);
     pop(0);
     pop(1);
-    printf("    str x0, [x29, x1]\n");
+    printf("    str x0, [x1]\n");
     push(0);
     return;
   case ND_VAR:
     printf("    mov x1, %d\n", to_offset(node->name, current_locals));
-    printf("    ldr x0, [x29, x1]\n");
+    printf("    add x1, x29, x1\n");
+    printf("    ldr x0, [x1]\n");
     push(0);
     return;
   // stmt
@@ -232,7 +240,7 @@ void gen(Node *node)
   case ND_DEREF:
     gen(node->lhs);
     pop(0);
-    printf("    ldr x0, [fp, x0]\n");
+    printf("    ldr x0, [x0]\n");
     push(0);
     return;
   default:;
