@@ -245,6 +245,19 @@ void gen(Node *node)
     printf("    ldr x0, [x0]\n");
     push(0);
     return;
+  case ND_SIZEOF:
+    switch(node->lhs->tp->kind){
+      case TY_INT:
+        printf("    mov x0, #4\n");
+        break;
+      case TY_PTR:
+        printf("    mov x0, #8\n");
+        break;
+      default:
+        error("gen: invalid type");
+    }
+    push(0);
+    return;
   default:;
   }
 

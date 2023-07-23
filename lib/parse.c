@@ -365,6 +365,8 @@ Node *unary()
     return new_node(ND_DEREF, unary(), NULL);
   if (eat_op("&"))
     return new_node(ND_REF, unary(), NULL);
+  if (eat(TK_SIZEOF))
+    return new_node(ND_SIZEOF, unary(), NULL);
   return primary();
 }
 Node *primary()

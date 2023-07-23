@@ -14,7 +14,8 @@ typedef enum
   TK_ELSE,
   TK_WHILE,
   TK_FOR,
-  TK_INT
+  TK_INT,
+  TK_SIZEOF,
 } TokenKind;
 
 typedef struct Token Token;
@@ -56,7 +57,7 @@ relational ::= add ("<" add | "<=" add | ">" add | ">=" add)*
 add ::= mul ("+" mul | "-" mul)*
 mul ::= unary ("*" unary | "/" unary)*
 unary ::= ("+" | "-")? primary
-       | ("*" | "&") unary
+       | ("*" | "&" | "sizeof") unary
 primary ::= [a-z]
         | [0-9]+
         | "(" expr ")"
@@ -80,6 +81,8 @@ typedef enum
   ND_ASS,
   ND_REF,
   ND_DEREF,
+  ND_CALL,
+  ND_SIZEOF,
 
   // not expr
   ND_SEQ,
@@ -88,7 +91,6 @@ typedef enum
   ND_WHILE,
   ND_FOR,
   ND_BLK,
-  ND_CALL
 } NodeKind;
 extern char *nd_kind_bin_op[];
 extern char *nd_kind_str[];

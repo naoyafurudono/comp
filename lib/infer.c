@@ -214,6 +214,12 @@ Type *infer(Node *node, Defs *defs, Locals *locals)
     infer(node->lhs, defs, locals);
     return NULL;
   }
+  case ND_SIZEOF:
+  {
+    infer(node->lhs, defs, locals);
+    node->tp = extendType(NULL, TY_INT);
+    return node->tp;
+  }
   }
   error("実装忘れ");
   return NULL; // never
