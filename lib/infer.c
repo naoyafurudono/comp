@@ -23,9 +23,11 @@ size_t to_size(Type *tp)
   switch (tp->kind)
   {
   case TY_INT:
-    return 4;
+    return 8;
   case TY_PTR:
     return 8;
+  case TY_ARR:
+    return tp->len * to_size(tp->inner);
   }
   error("to_size: unknown type");
   return 0;
@@ -63,12 +65,27 @@ void infer_dfns(Defs *dfns)
   }
 }
 Def *current_def = NULL;
+
+void set_offset(Def *dfn)
+{
+  size_t offset = 0;
+  Locals *locals = dfn->locals;
+  while (locals != NULL)
+  {
+    locals->offset = offset;
+    offset += to_size(locals->tp);
+    locals = locals->next;
+  }
+  dfn->stack_size = offset;
+}
+
 void infer_dfn(Def *dfn, Defs *defs)
 {
   if (dfn == NULL)
     return;
   current_def = dfn;
   infer(dfn->body, defs, dfn->locals);
+  set_offset(dfn);
 }
 
 // exprの型を検査し、型を返す

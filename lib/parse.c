@@ -149,6 +149,12 @@ Type *extendType(Type *cur, TypeKind kind)
     tp->inner = cur;
     tp->kind = TY_PTR;
     return tp;
+  case TY_ARR:
+    if (cur == NULL)
+      error("extendType: cur is NULL");
+    tp->inner = cur;
+    tp->kind = TY_ARR;
+    return tp;
   default:
     error("extendType: invalid kind");
   }
@@ -168,6 +174,13 @@ void decl()
   char *name = eat_id();
   if (name == NULL)
     error("変数名がありません");
+  if (eat_op("["))
+  {
+    int len = must_number();
+    must_eat_op("]");
+    tp = extendType(tp, TY_ARR);
+    tp->len = len;
+  }
   current_locals = extendLocals(current_locals, name, tp);
   must_eat_op(";");
 }
@@ -422,10 +435,9 @@ Locals *extendLocals(Locals *cur, char *name, Type *tp)
   Locals *locals = calloc(1, sizeof(Locals));
   locals->name = name;
   locals->tp = tp;
-  if (cur)
-    locals->offset = cur->offset + 1;
-  else
-    locals->offset = 0;
+  // offsetの計算はパーサの仕事ではない
+  // そもそもlocal変数を認識している時点でやりすぎ
+  // TODO スコープの処理を型検査に回す
   locals->next = cur;
   return locals;
 }

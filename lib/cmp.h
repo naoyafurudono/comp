@@ -42,8 +42,8 @@ Token *tokenize(char *p);
 
 program ::= dfn*
 dfn ::= type ident "(" (type ident)? ("," type ident)* ")" "{" decl* stmt* "}"
-decl ::= type ident";
-type ::= "int" | "*" type
+decl ::= type ident"; | type ident "[" num "]" ";"
+type ::= "int" | type "*"
 stmt ::= expr ";"  // expression statement
       | "return" expr ";"  //jump statement
       | "if" "(" expr ")" stmt ("else" stmt)? // selection statement
@@ -137,6 +137,7 @@ struct Def
   Node *body;
   Locals *locals;
   Type *tp;
+  size_t stack_size;
 };
 
 struct Params
@@ -149,12 +150,14 @@ struct Params
 typedef enum
 {
   TY_INT,
-  TY_PTR
+  TY_PTR,
+  TY_ARR,
 } TypeKind;
 struct Type
 {
   TypeKind kind;
   Type *inner;
+  size_t len;
 };
 Type *extendType(Type *cur, TypeKind kind);
 
@@ -184,6 +187,7 @@ extern Locals *current_locals;
 Type *infer(Node *expr, Defs *defs, Locals *locals);
 void infer_dfn(Def *def, Defs *defs);
 void infer_dfns(Defs *dfns);
+size_t to_size(Type *tp);
 
 void gen_dfn(Def *def);
 #endif

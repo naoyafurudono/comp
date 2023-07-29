@@ -22,7 +22,7 @@ int to_offset(char *varname, Locals *locals)
   {
     error("gen: undefined variable %s", varname);
   }
-  return (-1) * (16 + l->offset * 8);
+  return (-1) * (16 + l->offset);
 }
 size_t label_count = 0;
 char *new_label_name()
@@ -50,19 +50,20 @@ void gc_stack(Node *node)
 void prologue(Def *dfn)
 {
   // SPは16の倍数になっている必要がある
-  int size = dfn->locals == NULL ? 0 : dfn->locals->offset;
-  int range = (((size * 8 - 1) / 16) + 1) * 16;
+  size_t size = dfn->stack_size;
+  size_t range = ((size / 16) + 1) * 16;
   // push(29);
   printf("    stp x29, x30, [SP, #-16]!\n");
   printf("    mov x29, SP\n");
-  printf("    sub SP, SP, #%d\n", range); // (全てのローカル変数はXnレジスタに格納されるので。)
+  printf("    sub SP, SP, #%zu\n", range); // (全てのローカル変数はXnレジスタに格納されるので。)
   Params *cur = dfn->params;
+  size_t i = 0;
   while (cur)
   {
     Locals *local = applyLocals(dfn->locals, cur->name);
     if (local == NULL)
       error("gen: undefined variable %s", cur->name);
-    printf("    str x%d, [x29, #%d]\n", local->offset, to_offset(cur->name, local));
+    printf("    str x%zu, [x29, #%d]\n", i++, to_offset(cur->name, local));
     cur = cur->next;
   }
 }
@@ -237,17 +238,7 @@ void gen(Node *node)
     push(0);
     return;
   case ND_SIZEOF:
-    switch (node->lhs->tp->kind)
-    {
-    case TY_INT:
-      printf("    mov x0, #4\n");
-      break;
-    case TY_PTR:
-      printf("    mov x0, #8\n");
-      break;
-    default:
-      error("gen: invalid type");
-    }
+    printf("    mov x0, #%zu\n", to_size(node->tp));
     push(0);
     return;
   default:;
