@@ -16,6 +16,21 @@ void print_params(Params *params)
   }
 }
 
+size_t to_size(Type *tp)
+{
+  if (tp == NULL)
+    error("to_size: tp is NULL");
+  switch (tp->kind)
+  {
+  case TY_INT:
+    return 4;
+  case TY_PTR:
+    return 8;
+  }
+  error("to_size: unknown type");
+  return 0;
+}
+
 Def *applyDefs(Defs *defs, char *name)
 {
   while (defs != NULL)

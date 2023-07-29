@@ -43,14 +43,8 @@ char *new_label_name()
 // nodeの実行でスタックに値が積まれる場合、それをスタックから取り除く
 void gc_stack(Node *node)
 {
-  if (node == NULL)
-  {
-    return;
-  }
-  if (node->expr)
-  {
+  if (node != NULL && node->expr)
     pop(0);
-  }
 }
 
 void prologue(Def *dfn)
@@ -86,10 +80,7 @@ void gen_dfn(Def *def)
     return;
   current_locals = def->locals;
   printf("_%s:\n", def->name);
-  if (def->locals == NULL)
-    prologue(def);
-  else
-    prologue(def);
+  prologue(def);
   gen(def->body);
   epilogue();
   printf("    ret\n");
@@ -246,15 +237,16 @@ void gen(Node *node)
     push(0);
     return;
   case ND_SIZEOF:
-    switch(node->lhs->tp->kind){
-      case TY_INT:
-        printf("    mov x0, #4\n");
-        break;
-      case TY_PTR:
-        printf("    mov x0, #8\n");
-        break;
-      default:
-        error("gen: invalid type");
+    switch (node->lhs->tp->kind)
+    {
+    case TY_INT:
+      printf("    mov x0, #4\n");
+      break;
+    case TY_PTR:
+      printf("    mov x0, #8\n");
+      break;
+    default:
+      error("gen: invalid type");
     }
     push(0);
     return;

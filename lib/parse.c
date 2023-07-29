@@ -198,8 +198,8 @@ Def *dfn()
   while (tap(TK_INT))
     decl();
 
-  Node *p, *node;
-  p = node = appendSeq(NULL, stmt());
+  Node *body, *node;
+  body = node = appendSeq(NULL, stmt());
   while (!eat_op("}"))
     node = appendSeq(node, stmt());
 
@@ -207,7 +207,7 @@ Def *dfn()
   def->tp = tp;
   def->name = name;
   def->params = params;
-  def->body = p;
+  def->body = body;
   def->locals = current_locals;
   return def;
 }
