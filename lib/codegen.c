@@ -238,9 +238,12 @@ void gen(Node *node)
     push(0);
     return;
   case ND_SIZEOF:
-    printf("    mov x0, #%zu\n", to_size(node->tp));
+  {
+    size_t size = to_size(node->lhs->tp);
+    printf("    mov x0, #%zu\n", size);
     push(0);
     return;
+  }
   default:;
   }
 

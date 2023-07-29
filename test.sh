@@ -30,6 +30,7 @@ assert() {
     ng=$((ng + 1))
   fi
 }
+assert 16 "int main() { int x[2]; return sizeof(x); }"
 
 assert 0 "int main(){ return 0; }"
 assert 42 "int main(){ return 42; }"
@@ -102,7 +103,6 @@ for ((i = -10; i < 10; i++)); do
 done
 assert 10 "int main() { int i; for(i=0;i<10;i=i+1){i=i+1;} return i; } "
 
-assert 4 "int main() { int * x; return sizeof x; }"
 assert 3 "int main() { int x; int *y; y = &x; *y = 3; return x; }"
 assert 42 "int main(){ int x; x = 42; return *(&x); }"
 
@@ -116,6 +116,10 @@ assert 120 "int fact(int n){ int res; res = 1; while(n>0){ res = res * n; n = n 
 
 assert 42 "int f(int a, int b){ return *(&a + 1);} int main(){ return f(0, 42); }"
 assert 42 "int main(){ int x; x=0; set42(&x); return x; } int set42(int *x){ *x = 42; return 0; }"
+
+assert 8 "int main() { return sizeof(1); }"
+assert 8 "int main() { int * x; return sizeof x; }"
+assert 16 "int main() { int x[2]; return sizeof(x); }"
 
 printf "OK: %s\tNG: %s\n" $ok $ng
 if [[ $ng -ne 0 ]]; then

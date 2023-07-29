@@ -29,8 +29,6 @@ size_t to_size(Type *tp)
   case TY_ARR:
     return tp->len * to_size(tp->inner);
   }
-  error("to_size: unknown type");
-  return 0;
 }
 
 Def *applyDefs(Defs *defs, char *name)
