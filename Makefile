@@ -9,7 +9,7 @@ cmp: $(LIBS)
 	cc -o cmp $(CFLAGS) ./bin/cmp.c $(LIBS)
 
 test: cmp
-	./test.sh
+	bash test.sh
 
 clean:
 	rm -f cmp *.o *~ tmp* *.s *.out print
